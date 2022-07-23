@@ -1,10 +1,8 @@
-// const auth = require("./auth.route");
-const siteRoute = require("./site.route")
+const routerV1 = require("../modules/v1")
 
 route = (app) => {
-  //use routes
-  //   app.use("/auth", auth);
-  app.use("/", siteRoute)
+  app.use("/v1", routerV1)
+  app.use("/", routerV1)
 }
 
 module.exports = route

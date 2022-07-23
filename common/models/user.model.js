@@ -3,22 +3,27 @@ var bcrypt = require("bcrypt")
 
 var UserChema = new mongoose.Schema(
   {
-    email: {
-      type: String,
+    username: {
       unique: true,
+      type: String,
       required: true,
-      trim: true,
     },
     password: {
       type: String,
       required: true,
     },
+    email: {
+      type: String,
+      trim: true,
+      optional: true,
+    },
     name: {
       type: String,
       default: "Aniuser",
     },
-    description: {type: String},
-    avatar: {type: String, default: "/img/avatar_default.png"},
+    avatar: {
+      type: String,
+    },
   },
   {
     timestamps: true,
@@ -26,22 +31,28 @@ var UserChema = new mongoose.Schema(
 )
 
 //authenticate input against database
-UserChema.statics.authenticate = async function (email, password, callback) {
+UserChema.statics.authenticate = async function (username, password, callback) {
   try {
-    await User.findOne({email: email}).exec(function (err, user) {
+    await User.findOne({username: username}).exec(function (err, user) {
       if (err) {
         return callback(err)
       } else if (!user) {
-        var err = new Error("User not found.")
-        err.status = 401
+        const err = {
+          statusCode: 401,
+          status: "USER_NOT_FOUND",
+          message: "User not found",
+        }
         return callback(err)
       }
       bcrypt.compare(password, user.password, function (err, result) {
         if (result === true) {
           return callback(null, user)
         } else {
-          var err = new Error("Hashing problem.")
-          err.status = 401
+          const err = {
+            statusCode: 401,
+            status: "ERROR_PASSWORD",
+            message: "error password",
+          }
           return callback(err)
         }
       })

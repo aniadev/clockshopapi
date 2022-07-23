@@ -1,6 +1,6 @@
 const cors = require("cors")
 
-const tokenParser = require("../utils/tokenParser")
+const tokenParser = require("../../utils/tokenParser")
 
 const onlineUsers = []
 
