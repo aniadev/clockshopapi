@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
-require("dotenv").config();
+const mongoose = require("mongoose")
+require("dotenv").config()
 
-const mongodb_uri = process.env.MONGO_DB_URL;
+const mongodb_uri = process.env.MONGO_DB_URL
 // const mongodb_uri = 'mongodb://localhost:27017/appjs_dev';
 // const uri = process.env.MONGODB_URI //Config from heroku var
 async function connect() {
@@ -9,11 +9,11 @@ async function connect() {
     await mongoose.connect(mongodb_uri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-    });
-    console.log("Connect MongoDB Successfully");
+    })
+    console.log("Connect MongoDB Successfully")
   } catch (err) {
-    console.log(err.message);
+    console.log(err.message)
   }
 }
 
-module.exports = { connect };
+module.exports = {connect}

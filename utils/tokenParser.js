@@ -1,16 +1,17 @@
-var jwt = require('jsonwebtoken');
-require('dotenv').config();
-const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET;
+var jwt = require("jsonwebtoken")
+require("dotenv").config()
+
+const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 
 tokenParser = (socket) => {
   try {
-    let accessToken = socket.handshake.auth.accessToken;
-    let jwt_decoded = jwt.verify(accessToken, SECRET_KEY);
-    socket.userData = jwt_decoded;
-    return accessToken;
+    let accessToken = socket.handshake.auth.accessToken
+    let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
+    socket.userData = jwt_decoded
+    return accessToken
   } catch (error) {
-    return Error(error.message);
+    return Error(error.message)
   }
-};
+}
 
-module.exports = tokenParser;
+module.exports = tokenParser
