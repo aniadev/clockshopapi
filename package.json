@@ -18,6 +18,15 @@
   },
   "scripts": {
     "dev": "nodemon app.js",
-    "start": "node app.js"
-  }
+    "start": "node app.js",
+    "lint:js": "eslint . --ext js --fix",
+    "lint": "yarn lint:js"
+},
+"devDependencies": {
+    "eslint": "^8.20.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
+}
 }
