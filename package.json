@@ -19,6 +19,7 @@
   "scripts": {
     "dev": "nodemon src/app.js",
     "start": "node src/app.js",
+    "heroku-start": "node src/app.js",
     "lint:js": "eslint . --ext js --fix",
     "lint": "yarn lint:js"
   },
