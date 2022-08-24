@@ -33,20 +33,37 @@ class AuthController {
   //   POST /auth/register
   async register(req, res, next) {
     try {
+      let email = req.body?.email
+      let phoneNumber = req.body?.phoneNumber
       let username = req.body?.username
       let password = req.body?.password
-      let email = req.body?.email
-      let name = req.body?.name
-      if (!username || !password || !name) {
-        throw Error("username, password, name are required")
+      let fullName = req.body?.fullName
+      let address = req.body?.address
+      if (!email || !password || !phoneNumber || !username || !fullName) {
+        throw Error("INVALID_FIELD")
       }
-      const existUser = await User.findOne({username})
+      const existUser = await User.findOne({
+        $or: [{username}, {email}, {phoneNumber}],
+      })
       if (existUser) {
-        throw Error("username already exists")
+        throw Error("ACCOUNT_EXISTED")
       } else {
-        const newUser = new User({username, password, email, name})
-        await newUser.save()
-        let userData = {username, email, name}
+        const newUser = new User({
+          username,
+          password,
+          email,
+          fullName,
+          phoneNumber,
+          address: address || "",
+        })
+        const newUserRs = await newUser.save()
+        let userData = {
+          _id: newUserRs._id,
+          username,
+          email,
+          phoneNumber,
+          fullName,
+        }
         const accessToken = jwt.sign(userData, process.env.ACCESS_TOKEN_SECRET)
         res.json({
           statusCode: 200,
@@ -60,7 +77,7 @@ class AuthController {
     } catch (error) {
       res.json({
         statusCode: 400,
-        status: "FAIL",
+        status: error.message,
         message: error.message,
       })
     }
@@ -88,9 +105,11 @@ class AuthController {
           }
           if (user) {
             let userData = {
-              id: user._id,
-              name: user.name,
+              _id: user._id,
+              fullName: user.fullName,
               username: user.username,
+              phoneNumber: user.phoneNumber,
+              address: user.address,
               email: user.email,
               createdAt: user.createdAt,
             }

@@ -3,42 +3,37 @@ const argon2 = require("argon2")
 
 var UserChema = new mongoose.Schema(
   {
-    username: {
+    email: {
       unique: true,
       type: String,
       required: true,
       trim: true,
     },
+    phoneNumber: {
+      unique: true,
+      type: String,
+      required: true,
+    },
+    username: {
+      type: String,
+      required: true,
+    },
     password: {
       type: String,
       required: true,
     },
-    firstName: {
+    fullName: {
       required: true,
       type: String,
-      default: "Aniuser",
-      trim: true,
     },
-    lastName: {
-      type: String,
-      default: "",
-      trim: true,
-    },
-    avatar: {
+    address: {
       type: String,
       default: "",
     },
-    avatarThumb: {
+    role: {
       type: String,
-      default: "",
-    },
-    gender: {
-      type: String,
-      default: "female",
-    },
-    birthday: {
-      type: String,
-      default: new Date().toDateString(),
+      enum: ["USER", "ADMIN"],
+      default: "USER",
     },
   },
   {
