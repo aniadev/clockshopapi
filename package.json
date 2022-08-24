@@ -1,5 +1,5 @@
 {
-  "name": "base_app",
+  "name": "clockshopapi",
   "version": "1.0.0",
   "main": "app.js",
   "license": "MIT",
@@ -16,18 +16,20 @@
     "nodemon": "^2.0.13",
     "socket.io": "^4.3.1",
     "websocket": "^1.0.34"
-},
+  },
   "scripts": {
-      "dev": "nodemon app.js",
-      "start": "node app.js",
-      "lint:js": "eslint . --ext js --fix",
-      "lint": "yarn lint:js"
+    "dev": "nodemon app.js",
+    "start": "node app.js",
+    "lint:js": "eslint . --ext js --fix",
+    "lint": "yarn lint:js"
   },
   "devDependencies": {
-      "eslint": "^8.20.0",
-      "eslint-config-prettier": "^8.5.0",
-      "eslint-plugin-import": "^2.26.0",
-      "eslint-plugin-prettier": "^4.2.1",
-      "prettier": "^2.7.1"
-  }
+    "eslint": "^8.20.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.7.1"
+  },
+  "repository": "https://github.com/phamconghai1999/clockshopapi.git",
+  "author": "haipc_dev <phamcong.hai.90@gmail.com>"
 }
