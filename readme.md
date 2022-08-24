@@ -1,12 +1,37 @@
-BASE EXPRESS APP
+# Fakebookserver_v2
+## _Express - Webpack_
+## Development:
 
-.env
+- Run webpack to build bundle
+    ```sh
+    yarn install
+    yarn webpack
+    ```
+- Switch new Terminal
+     ```sh
+    yarn dev
+    ```
+## Production:
 
-+ NODE_ENV = 'development'
-+ MONGO_DB_URL = mongodb+srv://<username>:<password>@cluster0.2vvnb.mongodb.net/<database>
+- Install
+    ```sh
+    yarn install
+    ```
+- Run app
+     ```sh
+    yarn start
+    ```
 
-- DEV
-yarn dev
+## Config .env:
+- .env
+    ```sh
+    NODE_ENV = 'development'
+    PORT = 8080
+    MONGO_DB_URL = mongodb+srv://username:password@cluster0.2vvnb.mongodb.net/database
+    ```
 
-- PROD
-yarn start
+## License
+
+MIT
+
+**Free Software, Yeah Yeah!**

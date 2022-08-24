@@ -7,7 +7,7 @@ Auth = (req, res, next) => {
     const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
     let Authorization = req.headers.authorization
     if (!Authorization) {
-      return res.json({
+      return res.status(401).json({
         success: false,
         message: "No token",
       })
@@ -15,21 +15,21 @@ Auth = (req, res, next) => {
     let accessToken = Authorization.split(" ")[1]
     let tokenType = Authorization.split(" ")[0]
     let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
-    if (tokenType === "Bearer" && jwt_decoded) {
-      // console.log(jwt_decoded);
-      req.userId = jwt_decoded.userId
+    if (tokenType === "Bearer" && jwt_decoded._id) {
+      // console.log(jwt_decoded)
+      req.userId = jwt_decoded._id
       // console.log(jwt_decoded.userId);
       next()
     } else {
-      res.json({
-        success: false,
-        message: "Error token type",
+      res.status(401).json({
+        status: "FAIL",
+        message: "Invalid token",
       })
     }
   } catch (error) {
     // console.log(error);
-    res.json({
-      success: false,
+    res.status(401).json({
+      status: "FAIL",
       message: error.message,
     })
   }

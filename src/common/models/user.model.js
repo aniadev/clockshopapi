@@ -1,5 +1,5 @@
 var mongoose = require("mongoose")
-var bcrypt = require("bcrypt")
+const argon2 = require("argon2")
 
 var UserChema = new mongoose.Schema(
   {
@@ -7,22 +7,38 @@ var UserChema = new mongoose.Schema(
       unique: true,
       type: String,
       required: true,
+      trim: true,
     },
     password: {
       type: String,
       required: true,
     },
-    email: {
-      type: String,
-      trim: true,
-      optional: true,
-    },
-    name: {
+    firstName: {
+      required: true,
       type: String,
       default: "Aniuser",
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      default: "",
+      trim: true,
     },
     avatar: {
       type: String,
+      default: "",
+    },
+    avatarThumb: {
+      type: String,
+      default: "",
+    },
+    gender: {
+      type: String,
+      default: "female",
+    },
+    birthday: {
+      type: String,
+      default: new Date().toDateString(),
     },
   },
   {
@@ -38,24 +54,26 @@ UserChema.statics.authenticate = async function (username, password, callback) {
         return callback(err)
       } else if (!user) {
         const err = {
-          statusCode: 401,
+          statusCode: 400,
           status: "USER_NOT_FOUND",
           message: "User not found",
         }
         return callback(err)
       }
-      bcrypt.compare(password, user.password, function (err, result) {
-        if (result === true) {
+      argon2
+        .verify(user.password, password)
+        .then((result) => {
           return callback(null, user)
-        } else {
+        })
+        .catch((error) => {
+          console.log(">>> / file: user.model.js / line 62 / error", error)
           const err = {
-            statusCode: 401,
+            statusCode: 400,
             status: "ERROR_PASSWORD",
             message: "error password",
           }
           return callback(err)
-        }
-      })
+        })
     })
   } catch (error) {
     res.status(401).send({success: false, message: error.message})
@@ -64,13 +82,15 @@ UserChema.statics.authenticate = async function (username, password, callback) {
 // hash password before save
 UserChema.pre("save", function (next) {
   var user = this
-  bcrypt.hash(user.password, 10, function (err, hash) {
-    if (err) {
+  argon2
+    .hash(user.password)
+    .then((hashedPassword) => {
+      user.password = hashedPassword
+      next()
+    })
+    .catch((err) => {
       return next(err)
-    }
-    user.password = hash
-    next()
-  })
+    })
 })
 
 var User = mongoose.model("users", UserChema)

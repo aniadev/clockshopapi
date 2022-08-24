@@ -5,7 +5,7 @@ const port = 8599
 // import mysql
 // const mysql = require("./configs/mysql.config");
 // mysql.connect();
-const mongodb = require("./configs/mongodb.config")
+const mongodb = require("./common/configs/mongodb.config")
 
 mongodb.connect()
 
@@ -20,7 +20,7 @@ app.use(express.json())
 app.use(cors())
 
 Route(app)
-const socketio = require("./modules/socketio.module")
+const socketio = require("./modules/socketio/socketio.module")
 
 socketio(app, mongodb)
 

@@ -2,17 +2,21 @@ module.exports = {
   extends: ["prettier"],
   plugins: ["prettier", "import"],
   rules: {
-    "prettier/prettier": ["warn"],
+    "prettier/prettier": [
+      "warn",
+      {
+        endOfLine: "auto",
+      },
+    ],
     "import/no-unresolved": "warn", // turn on errors for missing imports
     "no-use-before-define": 0,
     "import/order": [
-      "warn",
+      "off",
       {
         groups: ["builtin", "external"],
-        "newlines-between": "always",
+        "newlines-between": 0,
       },
     ],
-    "import/newline-after-import": 1,
   },
   settings: {},
   parserOptions: {
