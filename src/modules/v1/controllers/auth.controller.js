@@ -1,7 +1,7 @@
 const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 const jwt = require("jsonwebtoken")
 const Auth = require("../middlewares/auth.middleware")
-const User = require("../../../common/models/user.model")
+const {User} = require("../../../common/models")
 
 class AuthController {
   // [GET] /auth/
