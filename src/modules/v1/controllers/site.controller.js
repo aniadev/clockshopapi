@@ -1,6 +1,12 @@
 const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 const Auth = require("../middlewares/auth.middleware")
-const User = require("../../../common/models/user.model")
+const {
+  User,
+  Cart,
+  Clock,
+  Order,
+  OrderDetail,
+} = require("../../../common/models")
 
 class SiteController {
   // [GET] /
@@ -13,7 +19,12 @@ class SiteController {
   }
 
   // [GET] /test
-  test(req, res, next) {
+  async test(req, res, next) {
+    await Cart.find()
+    await User.find()
+    await Clock.find()
+    await Order.find()
+    await OrderDetail.find()
     res.json({
       statusCode: 200,
       status: "success",
