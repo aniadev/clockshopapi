@@ -6,10 +6,6 @@ var OrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
     },
-    price: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "clocks",
-    },
     status: {
       type: String,
       enum: ["READY", "PENDING", "SUCCESS"],
