@@ -33,77 +33,102 @@ class SiteController {
 
   // [GET] /generate
   async generate(req, res, next) {
-    // const newManufacture = new Manufacture({
-    //   name: "SAMSUNG",
-    // })
-    // await newManufacture.save()
+    try {
+      const newUser = new User({
+        fullName: "John Cena",
+        phoneNumber: "123456",
+        username: "johncena",
+        email: "johncena@gmail.com",
+        password: "johncena",
+        address: "Thai Binh",
+      })
+      const newUserData = await newUser.save()
 
-    // const newMaterial = new Material({
-    //   name: "Gỗ lim",
-    //   info: "Gỗ lim",
-    // })
-    // await newMaterial.save()
+      const newManufacture = new Manufacture({
+        name: "INTEL",
+      })
+      const newManufactureData = await newManufacture.save()
 
-    // const newClockType = new ClockType({
-    //   name: "Treo tường",
-    //   description: "670mm x 350mm",
-    // })
-    // await newClockType.save()
+      const newMaterial = new Material({
+        name: "Gỗ thông",
+        info: "Gỗ thông",
+      })
+      const newMaterialData = await newMaterial.save()
 
-    // ==============
-    // const newClock = new Clock({
-    //   model: "C-01",
-    //   description: "C-01",
-    //   images: [
-    //     "https://i.ibb.co/L0SZNSD/anifastbook-IMAGE-Sat-Aug272022-101132.jpg",
-    //   ],
-    //   numOfRemain: 30,
-    //   unitPrice: 540000,
-    //   clockTypeId: "630989f47854793d33352b95",
-    //   manufacturerId: "630989f37854793d33352b91",
-    //   materialId: "630989f37854793d33352b93",
-    // })
-    // let newClockData = await newClock.save()
-    // console.log(
-    //   ">>> / file: site.controller.js / line 67 / newClockData",
-    //   newClockData
-    // )
-    // const newCart = new Cart({
-    //   user: "630666f3ffd133e42e2bcb0c",
-    //   clockId: newClockData._id,
-    // })
-    // const newCartData = await newCart.save()
-    // console.log(
-    //   ">>> / file: site.controller.js / line 76 / newCartData",
-    //   newCartData
-    // )
-    // ====
-    // const newPayment = new Payment({
-    //   type: "BANK",
-    //   accountNumber: "0909123321123",
-    //   cardNumber: "123456",
-    //   qrCode: "http://www.example.com/qrcode",
-    // })
-    // const newPaymentData = await newPayment.save()
-    // console.log(
-    //   ">>> / file: site.controller.js / line 88 / newPaymentData",
-    //   newPaymentData
-    // )
-    // ====
-    const newOrder = new Order({
-      user: "630666f3ffd133e42e2bcb0c",
-      status: "READY",
-      discount: 10,
-      discountType: "PERCENT",
-      paymentMethod: "630993dacbbc646022d40628",
-    })
-    const newOrderData = await newOrder.save()
+      const newClockType = new ClockType({
+        name: "Đặt sàn",
+        description: "1000mm x 540mm x 320mm",
+      })
+      const newClockTypeData = await newClockType.save()
 
-    res.json({
-      statusCode: 200,
-      status: "success",
-      message: "generated successfully",
-    })
+      const newClock = new Clock({
+        model: "C-02",
+        description: "C-02",
+        images: [
+          "https://i.ibb.co/L0SZNSD/anifastbook-IMAGE-Sat-Aug272022-101132.jpg",
+        ],
+        numOfRemain: 30,
+        unitPrice: 540000,
+        clockTypeId: newClockTypeData._id,
+        manufacturerId: newManufactureData._id,
+        materialId: newMaterialData._id,
+      })
+      let newClockData = await newClock.save()
+
+      const newCart = new Cart({
+        user: newUserData._id,
+        clockId: newClockData._id,
+      })
+      const newCartData = await newCart.save()
+      // ====
+      const newPayment = new Payment({
+        type: "MOMO",
+        accountNumber: "0123456789",
+        cardNumber: "0000000",
+        qrCode: "http://www.example.com/qrcode1",
+      })
+      const newPaymentData = await newPayment.save()
+      // ====
+      const newOrder = new Order({
+        user: newUserData._id,
+        status: "READY",
+        discount: 10,
+        discountType: "PERCENT",
+        paymentMethod: newPaymentData._id,
+      })
+      const newOrderData = await newOrder.save()
+      // ====
+      const newOrderDetail = new OrderDetail({
+        orderId: newOrderData._id,
+        clockId: newClockData._id,
+        quantity: 2,
+      })
+      const newOrderDetailData = await newOrderDetail.save()
+
+      res.json({
+        statusCode: 200,
+        status: "success",
+        message: "generated successfully",
+        data: {
+          user: newUserData,
+          clock: newClockData,
+          clockType: newClockTypeData,
+          manufacture: newManufactureData,
+          material: newMaterialData,
+          cart: newCartData,
+          payment: newPaymentData,
+          order: newOrderData,
+          orderDetail: newOrderDetailData,
+        },
+      })
+    } catch (error) {
+      console.log(error)
+      res.json({
+        statusCode: 500,
+        status: "error",
+        message: error.message,
+      })
+    }
   }
 
   // [GET] /findById?id=[id]
