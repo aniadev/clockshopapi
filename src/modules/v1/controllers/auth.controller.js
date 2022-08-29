@@ -11,7 +11,7 @@ class AuthController {
       let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
 
       if (type === "Bearer" && jwt_decoded) {
-        res.json({
+        res.status(200).json({
           statusCode: 200,
           status: "SUCCESS",
           message: "User authenticated successfully",
@@ -21,8 +21,8 @@ class AuthController {
         throw Error("Invalid access token")
       }
     } catch (error) {
-      res.json({
-        statusCode: 200,
+      res.status(400).json({
+        statusCode: 400,
         status: "FAIL",
         message: "User authenticated failed",
         message: error.message,
@@ -65,7 +65,7 @@ class AuthController {
           fullName,
         }
         const accessToken = jwt.sign(userData, process.env.ACCESS_TOKEN_SECRET)
-        res.json({
+        res.status(200).json({
           statusCode: 200,
           status: "SUCCESS",
           message: "User registered successfully",
@@ -75,8 +75,7 @@ class AuthController {
         })
       }
     } catch (error) {
-      res.json({
-        statusCode: 400,
+      res.status(400).json({
         status: error.message,
         message: error.message,
       })
@@ -97,11 +96,10 @@ class AuthController {
         (err, user) => {
           if (err) {
             let response = {
-              statusCode: 401,
               status: err.status,
               message: err.message,
             }
-            return res.json(response)
+            return res.status(401).json(response)
           }
           if (user) {
             let userData = {
@@ -117,8 +115,7 @@ class AuthController {
               userData,
               process.env.ACCESS_TOKEN_SECRET
             )
-            res.json({
-              statusCode: 200,
+            res.status(200).json({
               status: "SUCCESS",
               message: "User login successfully",
               data: {
@@ -130,8 +127,7 @@ class AuthController {
         }
       )
     } catch (error) {
-      res.json({
-        statusCode: 400,
+      res.status(400).json({
         status: "FAIL",
         message: error.message,
       })
