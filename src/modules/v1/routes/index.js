@@ -29,6 +29,7 @@ const router = express.Router()
 
 router.use("/auth", require("./auth.route"))
 router.use("/product", require("./product.route"))
+router.use("/account", require("./account.route"))
 router.use("/", require("./site.route"))
 
 module.exports = router
