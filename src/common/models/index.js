@@ -4,7 +4,7 @@ const OrderDetail = require("./orderDetail.model")
 const Cart = require("./cart.model")
 const Clock = require("./clock.model")
 const ClockType = require("./clockType.model")
-const Manufacture = require("./manufacture.model")
+const Provider = require("./provider.model")
 const Material = require("./material.model")
 const Payment = require("./paymentMethod.model")
 
@@ -15,7 +15,7 @@ const Models = {
   Cart,
   Clock,
   ClockType,
-  Manufacture,
+  Provider,
   Material,
   Payment,
 }

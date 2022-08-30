@@ -9,7 +9,7 @@ const {
   OrderDetail,
   Payment,
   Material,
-  Manufacture,
+  Provider,
 } = require("../../../common/models")
 
 class SiteController {
@@ -44,10 +44,10 @@ class SiteController {
       })
       const newUserData = await newUser.save()
 
-      const newManufacture = new Manufacture({
+      const newProvider = new Provider({
         name: "INTEL",
       })
-      const newManufactureData = await newManufacture.save()
+      const newProviderData = await newProvider.save()
 
       const newMaterial = new Material({
         name: "Gỗ thông",
@@ -70,7 +70,7 @@ class SiteController {
         numOfRemain: 30,
         unitPrice: 540000,
         clockTypeId: newClockTypeData._id,
-        manufacturerId: newManufactureData._id,
+        providerId: newProviderData._id,
         materialId: newMaterialData._id,
       })
       let newClockData = await newClock.save()
@@ -113,7 +113,7 @@ class SiteController {
           user: newUserData,
           clock: newClockData,
           clockType: newClockTypeData,
-          manufacture: newManufactureData,
+          provider: newProviderData,
           material: newMaterialData,
           cart: newCartData,
           payment: newPaymentData,

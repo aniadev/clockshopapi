@@ -9,7 +9,7 @@ const {
   OrderDetail,
   Payment,
   Material,
-  Manufacture,
+  Provider,
 } = require("../../../common/models")
 
 class AccountController {
@@ -19,7 +19,7 @@ class AccountController {
       const allProducts = await Clock.find()
         .sort({createdAt: -1})
         .populate("materialId", ["name", "info"])
-        .populate("manufacturerId", ["name"])
+        .populate("providerId", ["name"])
       res.status(200).json({
         status: "SUCCESS",
         data: allProducts,
@@ -39,7 +39,7 @@ class AccountController {
       const itemData = await Clock.findById(itemId)
         .sort({createdAt: -1})
         .populate("materialId", ["name", "info"])
-        .populate("manufacturerId", ["name"])
+        .populate("providerId", ["name"])
       res.status(200).json({
         status: "SUCCESS",
         data: itemData,

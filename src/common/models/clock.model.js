@@ -29,9 +29,9 @@ var ClockSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  manufacturerId: {
+  providerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "manufacturers",
+    ref: "providers",
   },
 })
 
