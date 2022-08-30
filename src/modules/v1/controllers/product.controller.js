@@ -148,7 +148,9 @@ class ProductController {
         unitPrice: req.body?.unitPrice,
         numOfRemain: req.body?.numOfRemain,
       }
-      const existedClock = await Clock.findByIdAndUpdate(clockId, newClock)
+      const existedClock = await Clock.findByIdAndUpdate(clockId, newClock, {
+        returnDocument: "after",
+      })
       if (!existedClock) {
         res.status(404).json({
           status: "FAIL",
@@ -159,7 +161,7 @@ class ProductController {
       res.status(200).json({
         status: "SUCCESS",
         message: "UPDATED_SUCCESSFUL",
-        data: {...existedClock._doc, ...newClock},
+        data: existedClock,
       })
     } catch (error) {
       console.log(error)

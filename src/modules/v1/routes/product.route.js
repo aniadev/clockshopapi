@@ -2,7 +2,6 @@ const express = require("express")
 const router = express.Router()
 
 const ProductController = require("../controllers/product.controller")
-const Auth = require("../middlewares/auth.middleware")
 const AdminRole = require("../middlewares/admin.middleware")
 
 // /=> get all items
@@ -38,5 +37,9 @@ router.delete("/delete-material", AdminRole, ProductController.deleteMaterial)
 router.post("/create-provider", AdminRole, ProductController.createProvider)
 // router.put("/update-provider", AdminRole, ProductController.updateProvider)
 router.delete("/delete-provider", AdminRole, ProductController.deleteProvider)
+
+//
+//
+// /======================> order
 
 module.exports = router
