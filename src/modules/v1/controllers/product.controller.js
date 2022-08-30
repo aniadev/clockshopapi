@@ -1,5 +1,6 @@
 const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 const jwt = require("jsonwebtoken")
+const {forEach, includes} = require("lodash")
 const {
   User,
   Cart,
@@ -12,17 +13,46 @@ const {
   Provider,
 } = require("../../../common/models")
 
+const isNull = (data) => {
+  let rs = false
+  forEach(data, (value, key) => {
+    if (!data[key]) rs = true
+  })
+  return rs
+}
+const allProductType = ["clock", "clockType", "material", "provider"]
 class ProductController {
-  // [GET] /product/all
+  // [GET] /product/all?type=<dataType>
   async getAllData(req, res, next) {
     try {
-      const allProducts = await Clock.find()
-        .sort({createdAt: -1})
-        .populate("materialId", ["name", "info"])
-        .populate("providerId", ["name"])
+      const dataType = req.query.type || "clock"
+      let responseData
+      if (!includes(allProductType, dataType)) {
+        res.status(200).json({
+          status: "FALSE",
+          message: "ERROR_PRODUCT_TYPE",
+        })
+        return
+      }
+      if (dataType === "clock") {
+        responseData = await Clock.find()
+          .populate("clockTypeId", ["name", "description"])
+          .populate("materialId", ["name", "info"])
+          .populate("providerId", ["name"])
+          .sort({createdAt: -1})
+      } else if (dataType === "clockType") {
+        responseData = await ClockType.find()
+      } else if (dataType === "material") {
+        responseData = await Material.find()
+      } else if (dataType === "provider") {
+        responseData = await Provider.find()
+      }
       res.status(200).json({
         status: "SUCCESS",
-        data: allProducts,
+        data: {
+          type: dataType,
+          data: responseData,
+        },
       })
     } catch (error) {
       console.log(">>> / file: product.controller.js / line 28 / error", error)
@@ -38,14 +68,101 @@ class ProductController {
       const itemId = req.query._id
       const itemData = await Clock.findById(itemId)
         .sort({createdAt: -1})
+        .populate("clockTypeId", ["name", "description"])
         .populate("materialId", ["name", "info"])
         .populate("providerId", ["name"])
+      if (!itemData) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "NOT_FOUND",
+        })
+        return
+      }
       res.status(200).json({
         status: "SUCCESS",
         data: itemData,
       })
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 47 / error", error)
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "External server error",
+      })
+    }
+  }
+  // [POST] /product/create-clock
+  async createNewClock(req, res, next) {
+    try {
+      const newClock = {
+        model: req.body?.model,
+        materialId: req.body?.materialId,
+        clockTypeId: req.body?.clockTypeId,
+        providerId: req.body?.providerId,
+        description: req.body?.description,
+        images: req.body?.images,
+        unitPrice: req.body?.unitPrice,
+        numOfRemain: req.body?.numOfRemain,
+      }
+      if (isNull(newClock)) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EMPTY_DATA",
+        })
+        return
+      }
+      const existedClock = await Clock.findOne({model: newClock.model})
+      if (existedClock) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EXISTED",
+        })
+        return
+      }
+      const newClock_doc = new Clock(newClock)
+      const newClockData = await newClock_doc.save()
+
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "CREATED_SUCCESSFUL",
+        data: newClockData,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "External server error",
+      })
+    }
+  }
+  // [PUT] /product/update-clock
+  async updateClock(req, res, next) {
+    try {
+      const clockId = req.query?._id
+      const newClock = {
+        model: req.body?.model,
+        materialId: req.body?.materialId,
+        clockTypeId: req.body?.clockTypeId,
+        providerId: req.body?.providerId,
+        description: req.body?.description,
+        images: req.body?.images,
+        unitPrice: req.body?.unitPrice,
+        numOfRemain: req.body?.numOfRemain,
+      }
+      const existedClock = await Clock.findByIdAndUpdate(clockId, newClock)
+      if (!existedClock) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "NOT_FOUND",
+        })
+        return
+      }
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "UPDATED_SUCCESSFUL",
+        data: {...existedClock._doc, ...newClock},
+      })
+    } catch (error) {
+      console.log(error)
       res.status(500).json({
         status: "ERROR",
         message: "External server error",
@@ -53,7 +170,44 @@ class ProductController {
     }
   }
 
-  //  MATERIAL
+  //  CLOCKTYPE
+  // [POST] /product/create-clocktype
+  async createNewClockType(req, res, next) {
+    try {
+      const newClockType = {
+        name: req.body?.name,
+        description: req.body?.description,
+      }
+      if (isNull(newClockType)) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EMPTY_DATA",
+        })
+        return
+      }
+      const existClockType = await ClockType.findOne({name: newClockType.name})
+      if (existClockType) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EXISTED",
+        })
+        return
+      }
+      const newDoc = new ClockType(newClockType)
+      const doc = await newDoc.save()
+      res.status(200).json({
+        status: "SUCCESS",
+        data: doc,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "External server error",
+      })
+    }
+  }
+
   // [GET] /product/all-material
   async getAllMaterial(req, res, next) {
     try {
@@ -64,7 +218,7 @@ class ProductController {
         data: allMaterial,
       })
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 47 / error", error)
+      console.log(error)
       res.status(500).json({
         status: "ERROR",
         message: "EXTERNAL_SERVER_ERROR",
@@ -98,7 +252,7 @@ class ProductController {
         data: newMaterialData,
       })
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 47 / error", error)
+      console.log(error)
       res.status(500).json({
         status: "ERROR",
         message: "EXTERNAL_SERVER_ERROR",
@@ -130,7 +284,7 @@ class ProductController {
         data: updatedMaterial,
       })
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 47 / error", error)
+      console.log(error)
       res.status(500).json({
         status: "ERROR",
         message: "EXTERNAL_SERVER_ERROR",
@@ -140,17 +294,113 @@ class ProductController {
   // [PUT] /product/delete-material
   async deleteMaterial(req, res, next) {
     try {
-      const itemId = req.query._id
-      const itemData = await Clock.findById(itemId)
-        .sort({createdAt: -1})
-        .populate("materialId", ["name", "info"])
-        .populate("providerId", ["name"])
       res.status(200).json({
-        status: "SUCCESS",
-        data: itemData,
+        // status: "SUCCESS",
+        // data: itemData,
       })
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 47 / error", error)
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "External server error",
+      })
+    }
+  }
+
+  //  PROVIDER
+  // [GET] /product/all-provider
+  async getAllProvider(req, res, next) {
+    try {
+      const allProvider = await Provider.find()
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "CREATED_SUCCESSFUL",
+        data: allProvider,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "EXTERNAL_SERVER_ERROR",
+      })
+    }
+  }
+  // [POST] /product/create-provider
+  async createProvider(req, res, next) {
+    try {
+      const {name} = req.body
+      if (!name) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EMPTY_DATA",
+        })
+        return
+      }
+      const existProvider = await Provider.findOne({name})
+      if (existProvider) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "EXISTED",
+        })
+        return
+      }
+      const newProvider = new Provider({name})
+      const newProviderData = await newProvider.save()
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "CREATED_SUCCESSFUL",
+        data: newProviderData,
+      })
+    } catch (error) {
+      console.log(error)
+      res.status(500).json({
+        status: "ERROR",
+        message: "EXTERNAL_SERVER_ERROR",
+      })
+    }
+  }
+  // [POST] /product/update-material
+  // async updateProvider(req, res, next) {
+  //   try {
+  //     const {name} = req.body
+  //     if (!name) {
+  //       res.status(404).json({
+  //         status: "FAIL",
+  //         message: "EMPTY_DATA",
+  //       })
+  //       return
+  //     }
+  //     const updatedProvider = await Provider.findOneAndUpdate({name})
+  //     if (!updatedProvider) {
+  //       res.status(404).json({
+  //         status: "FAIL",
+  //         message: "NOT_FOUND",
+  //       })
+  //       return
+  //     }
+  //     res.status(200).json({
+  //       status: "SUCCESS",
+  //       message: "UPDATED_SUCCESSFUL",
+  //       data: updatedProvider,
+  //     })
+  //   } catch (error) {
+  //     console.log(error)
+  //     res.status(500).json({
+  //       status: "ERROR",
+  //       message: "EXTERNAL_SERVER_ERROR",
+  //     })
+  //   }
+  // }
+
+  // [DELETE] /product/delete-provider
+  async deleteProvider(req, res, next) {
+    try {
+      res.status(200).json({
+        // status: "SUCCESS",
+        // data: itemData,
+      })
+    } catch (error) {
+      console.log(error)
       res.status(500).json({
         status: "ERROR",
         message: "External server error",
