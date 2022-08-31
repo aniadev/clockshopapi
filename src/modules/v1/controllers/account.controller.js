@@ -28,27 +28,30 @@ class AccountController {
       console.log(">>> / file: product.controller.js / line 28 / error", error)
       res.status(500).json({
         status: "ERROR",
-        message: "External server error",
+        message: "EXTERNAL_SERVER_ERROR",
       })
     }
   }
-  // [GET] /account/detail?_id=1234
+  // [GET] /account/detail
   async getDataById(req, res, next) {
     try {
-      const itemId = req.query._id
-      const itemData = await Clock.findById(itemId)
-        .sort({createdAt: -1})
-        .populate("materialId", ["name", "info"])
-        .populate("providerId", ["name"])
+      const userId = req.userId
+      console.log(
+        ">>> / file: account.controller.js / line 39 / itemId",
+        userId
+      )
+      const accountDetail = await User.findById(userId)
+      delete accountDetail._doc.password
       res.status(200).json({
         status: "SUCCESS",
-        data: itemData,
+        message: "ACCOUNT_DETAIL",
+        data: accountDetail,
       })
     } catch (error) {
       console.log(">>> / file: product.controller.js / line 47 / error", error)
       res.status(500).json({
         status: "ERROR",
-        message: "External server error",
+        message: "EXTERNAL_SERVER_ERROR",
       })
     }
   }

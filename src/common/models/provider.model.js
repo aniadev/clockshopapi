@@ -6,6 +6,16 @@ var ProviderSchema = new mongoose.Schema({
     unique: true,
     required: true,
   },
+  address: {
+    type: String,
+    required: false,
+    default: "",
+  },
+  phoneNumber: {
+    type: String,
+    required: false,
+    default: "",
+  },
 })
 
 var Provider = mongoose.model("providers", ProviderSchema)

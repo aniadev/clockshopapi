@@ -6,6 +6,11 @@ var OrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
     },
+    shipTo: {
+      type: String,
+      require: true,
+      default: "",
+    },
     status: {
       type: String,
       enum: ["READY", "PENDING", "SUCCESS", "ABORTED"],
@@ -18,6 +23,7 @@ var OrderSchema = new mongoose.Schema(
     discountType: {
       type: String,
       enum: ["PERCENT", "AMOUNT"],
+      default: "PERCENT",
     },
     paymentMethod: {
       type: mongoose.Schema.Types.ObjectId,

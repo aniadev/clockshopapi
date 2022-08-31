@@ -16,7 +16,7 @@ const {
 const isNull = (data) => {
   let rs = false
   forEach(data, (value, key) => {
-    if (!data[key]) rs = true
+    if (data[key] == undefined) rs = true
   })
   return rs
 }
@@ -296,15 +296,29 @@ class ProductController {
   // [PUT] /product/delete-material
   async deleteMaterial(req, res, next) {
     try {
+      const {materialId} = req.body
+      if (!materialId) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "NO_MATERIAL_ID",
+        })
+        return
+      }
+      const rs = await Material.findByIdAndDelete(materialId, {
+        returnOriginal: true,
+      })
       res.status(200).json({
-        // status: "SUCCESS",
-        // data: itemData,
+        status: "SUCCESS",
+        message: "DELETE_SUCCESSFUL",
+        data: {
+          _id: materialId,
+        },
       })
     } catch (error) {
       console.log(error)
       res.status(500).json({
         status: "ERROR",
-        message: "External server error",
+        message: "EXTERNAL_SERVER_ERROR",
       })
     }
   }
@@ -330,7 +344,7 @@ class ProductController {
   // [POST] /product/create-provider
   async createProvider(req, res, next) {
     try {
-      const {name} = req.body
+      const {name, address, phoneNumber} = req.body
       if (!name) {
         res.status(404).json({
           status: "FAIL",
@@ -346,7 +360,7 @@ class ProductController {
         })
         return
       }
-      const newProvider = new Provider({name})
+      const newProvider = new Provider({name, address, phoneNumber})
       const newProviderData = await newProvider.save()
       res.status(200).json({
         status: "SUCCESS",
@@ -397,15 +411,29 @@ class ProductController {
   // [DELETE] /product/delete-provider
   async deleteProvider(req, res, next) {
     try {
+      const {providerId} = req.body
+      if (!providerId) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "NO_PROVIDER_ID",
+        })
+        return
+      }
+      const rs = await Provider.findByIdAndDelete(providerId, {
+        returnOriginal: true,
+      })
       res.status(200).json({
-        // status: "SUCCESS",
-        // data: itemData,
+        status: "SUCCESS",
+        message: "DELETE_SUCCESSFUL",
+        data: {
+          _id: providerId,
+        },
       })
     } catch (error) {
       console.log(error)
       res.status(500).json({
         status: "ERROR",
-        message: "External server error",
+        message: "EXTERNAL_SERVER_ERROR",
       })
     }
   }
