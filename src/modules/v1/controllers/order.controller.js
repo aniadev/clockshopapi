@@ -181,15 +181,23 @@ class OrderController {
         })
         return
       }
+      const existedClock = await Clock.findById(clockId)
+      if (!existedClock) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "CLOCK_ID_INVALID",
+        })
+        return
+      }
       const existedCartItem = await Cart.findOne({clockId, userId})
-
       let newCartItem, newCartItemData
       if (!existedCartItem) {
-        newCartItem = new Cart({clockId, quantity})
+        newCartItem = new Cart({clockId, quantity, userId})
         newCartItemData = await newCartItem.save()
       } else {
         newCartItem = {
           clockId,
+          userId,
           quantity: quantity + existedCartItem.quantity,
         }
         newCartItemData = await Cart.findOneAndUpdate(
@@ -222,7 +230,6 @@ class OrderController {
         })
         return
       }
-
       const existedCartItem = await Cart.findOneAndUpdate(
         {clockId, userId},
         {quantity},
