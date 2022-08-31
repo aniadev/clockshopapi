@@ -38,7 +38,7 @@ class ProductController {
         responseData = await Clock.find()
           .populate("clockTypeId", ["name", "description"])
           .populate("materialId", ["name", "info"])
-          .populate("providerId", ["name"])
+          .populate("providerId", ["name", "address", "phoneNumber"])
           .sort({createdAt: -1})
       } else if (dataType === "clockType") {
         responseData = await ClockType.find()
@@ -70,7 +70,7 @@ class ProductController {
         .sort({createdAt: -1})
         .populate("clockTypeId", ["name", "description"])
         .populate("materialId", ["name", "info"])
-        .populate("providerId", ["name"])
+        .populate("providerId")
       if (!itemData) {
         res.status(404).json({
           status: "FAIL",
