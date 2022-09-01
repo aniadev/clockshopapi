@@ -155,7 +155,9 @@ class OrderController {
       console.log(">>> / file: order.controller.js / line 37 / userId", userId)
       const allCartItem = await Cart.find({
         $and: [{userId}, {quantity: {$gte: 1}}],
-      }).sort({createdAt: -1})
+      })
+        .sort({createdAt: -1})
+        .populate("clockId")
       res.status(200).json({
         status: "SUCCESS",
         message: "ALL_CART_ITEMS",
@@ -195,10 +197,18 @@ class OrderController {
         newCartItem = new Cart({clockId, quantity, userId})
         newCartItemData = await newCartItem.save()
       } else {
+        let newQuantity = quantity + existedCartItem.quantity
+        if (newQuantity > existedClock.numOfRemain) {
+          res.status(404).json({
+            status: "FAIL",
+            message: "OUT_OF_STOCK",
+          })
+          return
+        }
         newCartItem = {
           clockId,
           userId,
-          quantity: quantity + existedCartItem.quantity,
+          quantity: newQuantity,
         }
         newCartItemData = await Cart.findOneAndUpdate(
           {clockId, userId},
@@ -227,6 +237,14 @@ class OrderController {
         res.status(404).json({
           status: "FAIL",
           message: "EMPTY_CLOCK_ID",
+        })
+        return
+      }
+      const existedClock = await Clock.findById(clockId)
+      if (quantity > existedClock.numOfRemain) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "OUT_OF_STOCK",
         })
         return
       }
