@@ -17,7 +17,7 @@ class SiteController {
   index(req, res, next) {
     res.json({
       statusCode: 200,
-      status: "success",
+      status: "SUCCESS",
       message: "Welcome to API",
     })
   }
@@ -26,8 +26,16 @@ class SiteController {
   async test(req, res, next) {
     res.json({
       statusCode: 200,
-      status: "success",
+      status: "SUCCESS",
       message: "test",
+    })
+  }
+  // [GET] /test
+  async handleWebhook(req, res, next) {
+    res.status(200).json({
+      status: "SUCCESS",
+      message: "webhook test",
+      data: req.body,
     })
   }
 
@@ -107,7 +115,7 @@ class SiteController {
 
       res.json({
         statusCode: 200,
-        status: "success",
+        status: "SUCCESS",
         message: "generated successfully",
         data: {
           user: newUserData,
