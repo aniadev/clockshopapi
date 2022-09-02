@@ -29,6 +29,14 @@ var OrderSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "payment_methods",
     },
+    paymentHash: {
+      type: String,
+      default: "",
+    },
+    transactionId: {
+      type: String,
+      default: "",
+    },
   },
   {
     timestamps: true,

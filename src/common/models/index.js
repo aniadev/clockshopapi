@@ -7,6 +7,7 @@ const ClockType = require("./clockType.model")
 const Provider = require("./provider.model")
 const Material = require("./material.model")
 const Payment = require("./paymentMethod.model")
+const Transaction = require("./transaction.model")
 
 const Models = {
   User,
@@ -18,6 +19,7 @@ const Models = {
   Provider,
   Material,
   Payment,
+  Transaction,
 }
 
 module.exports = Models

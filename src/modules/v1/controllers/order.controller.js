@@ -77,6 +77,7 @@ class OrderController {
   // [POST] /account/order/create
   async createAnOrder(req, res, next) {
     try {
+      let message = ""
       const userId = req.userId
       const newOrder_doc = {
         user: userId,
@@ -85,15 +86,20 @@ class OrderController {
         discount: req.body?.discount || 0,
         discountType: req.body?.discountType || "PERCENT",
         items: req.body?.items,
+        paymentHash: req.body?.paymentHash || "",
       }
-      console.log(
-        ">>> / file: order.controller.js / line 88 / newOrder_doc",
-        newOrder_doc
-      )
       if (isNull(newOrder_doc)) {
         res.status(404).json({
           status: "FAIL",
           message: "EMPTY_DATA",
+        })
+        return
+      }
+      const paymentData = await Payment.findById(newOrder_doc.paymentMethod)
+      if (!paymentData) {
+        res.status(404).json({
+          status: "FAIL",
+          message: "INVALID_PAYMENT_METHOD",
         })
         return
       }

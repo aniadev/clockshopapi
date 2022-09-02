@@ -10,6 +10,7 @@ const {
   Payment,
   Material,
   Provider,
+  Transaction,
 } = require("../../../common/models")
 
 class SiteController {
