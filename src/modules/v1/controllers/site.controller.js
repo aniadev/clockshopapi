@@ -34,6 +34,7 @@ class SiteController {
   // [GET] /test
   async handleWebhook(req, res, next) {
     console.log("webhook: ", req.body)
+    console.log("app: ", req.query.app)
     res.status(200).json({
       status: "SUCCESS",
       message: "webhook test",

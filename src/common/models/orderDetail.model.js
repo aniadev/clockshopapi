@@ -12,7 +12,11 @@ var OrderDetailSchema = new mongoose.Schema(
     },
     quantity: {
       type: Number,
-      default: 0,
+      required: true,
+    },
+    unitPrice: {
+      type: Number,
+      required: true,
     },
   },
   {

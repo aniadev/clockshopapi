@@ -14,6 +14,7 @@ router.get("/detail", Auth, AccountController.getDataById)
 // /=> get all order of account
 router.get("/order/all", Auth, OrderController.getAllOrder)
 router.post("/order/create", Auth, OrderController.createAnOrder)
+router.post("/order/approve", Auth, OrderController.approveOrderById)
 router.get("/order/all-payment", OrderController.getAllPaymentMethods)
 router.get("/order", Auth, OrderController.getAllOrder)
 

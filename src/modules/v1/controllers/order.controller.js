@@ -11,12 +11,32 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
-const {forEach} = require("lodash")
+const {forEach, map, find, isEqual} = require("lodash")
 const isNull = (data) => {
   let rs = false
   forEach(data, (value, key) => {
     if (data[key] == undefined) rs = true
     if (typeof value == "object" && value.length == 0) rs = true
+  })
+  return rs
+}
+const hasNullInArray = (arr) => {
+  let rs = false
+  forEach(arr, (value, key) => {
+    if (value == undefined) rs = true
+  })
+  return rs
+}
+var isDuplicateArr = (arr) => {
+  let rs = false
+  map(arr, function (o, i) {
+    let eq = find(arr, function (e, ind) {
+      if (i > ind) {
+        return isEqual(e, o)
+      }
+    })
+    console.log(eq)
+    if (eq) rs = true
   })
   return rs
 }
@@ -40,7 +60,16 @@ class OrderController {
       const userId = req.userId
       console.log(">>> / file: order.controller.js / line 33 / userId", userId)
       const allOrderItem = await Order.find({
-        user: userId,
+        $and: [
+          {userId},
+          {
+            $or: [
+              {status: "PENDING"},
+              {status: "APPROVED"},
+              {status: "SUCCESS"},
+            ],
+          },
+        ],
       })
         .sort({createdAt: -1})
         .populate("user", ["fullName", "email", "address"])
@@ -68,51 +97,156 @@ class OrderController {
         data: allOrderItem,
       })
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      console.log(error)
+      next([500])
     }
   }
+
   // [POST] /account/order/create
   async createAnOrder(req, res, next) {
     try {
-      let message = ""
       const userId = req.userId
       const newOrder_doc = {
         user: userId,
         shipTo: req.body?.shipTo,
-        paymentMethod: req.body?.paymentMethod,
+        // paymentMethod: req.body?.paymentMethod,
         discount: req.body?.discount || 0,
         discountType: req.body?.discountType || "PERCENT",
-        items: req.body?.items,
-        paymentHash: req.body?.paymentHash || "",
       }
+      const cartItemIds = req.body?.cartItemIds
+      if (!cartItemIds) next([404, "EMPTY_DATA"])
+      if (isDuplicateArr(cartItemIds)) next([404, "DUPLICATE_ITEMS"])
+      // check cart items
+      let allCartItemQueries = []
+      forEach(cartItemIds, (cartItemId) => {
+        allCartItemQueries.push(Cart.findOne({_id: cartItemId, userId: userId}))
+      })
+      const orderItems = await Promise.all(allCartItemQueries)
+      const userData = await User.findById(userId)
       if (isNull(newOrder_doc)) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([404, "EMPTY_DATA"])
       }
-      const paymentData = await Payment.findById(newOrder_doc.paymentMethod)
-      if (!paymentData) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "INVALID_PAYMENT_METHOD",
-        })
-        return
-      }
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "ORDER_CREATED_SUCCESSFUL",
-        data: "service on maintain",
+      // check items:
+      let itemInvalid = false
+      let itemQueries = []
+      let existedClocks = []
+      forEach(orderItems, (item) => {
+        if (!item.clockId || !item.quantity) {
+          itemInvalid = true
+          return
+        }
+        itemQueries.push(Clock.findById(item.clockId))
       })
+      if (itemInvalid) {
+        next([404, "INVALID_ITEM_DATA"])
+      } else {
+        existedClocks = await Promise.all(itemQueries)
+        if (hasNullInArray(existedClocks)) {
+          next([404, "INVALID_CLOCK"])
+        }
+      }
+      orderItems.map((item, index) => {
+        return {...item}
+      })
+      // const paymentData = await Payment.findById(newOrder_doc.paymentMethod)
+      // if (!paymentData) {
+      //   next([404, "INVALID_PAYMENT_METHOD", paymentData])
+      // }
+      // create new order
+      const newOrder = new Order(newOrder_doc)
+      const newOrderData = await newOrder.save()
+      // insert clock to orderDetail
+      let orderDetailQueries = []
+      forEach(existedClocks, (clock, index) => {
+        let newOrderDetail = new OrderDetail({
+          orderId: newOrderData._id,
+          clockId: clock._id,
+          unitPrice: clock.unitPrice,
+          quantity: orderItems[index].quantity,
+        })
+        orderDetailQueries.push(newOrderDetail.save())
+      })
+      await Promise.all(orderDetailQueries) //save order details
+      const allOrderDetailData = await OrderDetail.find({
+        orderId: newOrderData._id,
+      }).populate("clockId", ["model"])
+      let orderTotalPrice = 0
+      forEach(
+        allOrderDetailData,
+        (detailItem) =>
+          (orderTotalPrice += detailItem.unitPrice * detailItem.quantity)
+      )
+
+      const newOrderDataResponse = {
+        ...newOrderData._doc,
+        user: {
+          _id: userData._id,
+          fullName: userData.fullName,
+          email: userData.email,
+          phoneNumber: userData.phoneNumber,
+          address: userData.address,
+        },
+        totalPrice: orderTotalPrice,
+        allItems: allOrderDetailData,
+      }
+
+      next([200, "ORDER_CREATED_SUCCESSFUL", newOrderDataResponse])
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
+      console.log(error)
+      next([500])
+    }
+  }
+
+  // [POST] /account/order/approve
+  //   {
+  //     "orderId": "6312e6970fb72be64dece7c6",
+  //     "paymentMethod": "630d88bc15caa4f8904ea7ec",
+  //     "paymentHash": "paymentHash"
+  //  }
+  async approveOrderById(req, res, next) {
+    try {
+      const userId = req.userId
+      const {orderId, paymentMethod, paymentHash} = req.body
+      if (isNull({orderId, paymentMethod, paymentHash})) {
+        return next([400, "EMPTY_DATA"])
+      }
+      if (!paymentHash) next([400, "EMPTY_PAYMENT_HASH"])
+      const paymentData = await Payment.findById(paymentMethod)
+      const orderData = await Order.findById(orderId)
+      // if (orderData.paymentMethod.toString() !== paymentMethod) {
+      //   return next([404, "INVALID_PAYMENT_METHOD"])
+      // }
+      // if (orderData.status !== "READY") next([400, "ONLY_APPROVE_READY_ORDER"])
+      // update order to pending
+      const updatedOrderData = await Order.findByIdAndUpdate(
+        orderId,
+        {
+          status: "PENDING",
+          paymentHash: paymentHash,
+        },
+        {
+          returnDocument: "after",
+        }
+      ).populate("user", ["fullName", "email", "phoneNumber"])
+      const allOrderItems = await OrderDetail.find({orderId}).populate(
+        "clockId",
+        ["model"]
+      )
+      updatedOrderData._doc.allItems = allOrderItems
+
+      // delete item in cart
+      let deleteQueries = []
+      forEach(allOrderItems, (item) => {
+        deleteQueries.push(
+          Cart.findOneAndDelete({userId, clockId: item.clockId._id.toString()})
+        )
       })
+      await Promise.all(deleteQueries)
+
+      next([200, "ORDER_APPROVED_SUCCESSFUL", updatedOrderData])
+    } catch (error) {
+      console.log(error)
+      next([500])
     }
   }
   // [PUT] /account/order/update
@@ -126,27 +260,16 @@ class OrderController {
         data: existedCartItem,
       })
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500])
     }
   }
   // [GET] /account/order/all-payment
   async getAllPaymentMethods(req, res, next) {
     try {
       const allPaymentMethods = await Payment.find()
-
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "UPDATED_SUCCESSFUL",
-        data: allPaymentMethods,
-      })
+      next([200, "ALL_PAYMENT_METHODS", allPaymentMethods])
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500])
     }
   }
 
@@ -158,7 +281,7 @@ class OrderController {
   async getAllCartItem(req, res, next) {
     try {
       const userId = req.userId
-      console.log(">>> / file: order.controller.js / line 37 / userId", userId)
+      console.log(">>> / file: order.controller.js / line 276 / userId", userId)
       const allCartItem = await Cart.find({
         $and: [{userId}, {quantity: {$gte: 1}}],
       })
@@ -170,10 +293,7 @@ class OrderController {
         data: allCartItem,
       })
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500])
     }
   }
   // [POST] /account/cart/add
@@ -228,10 +348,7 @@ class OrderController {
         data: newCartItemData,
       })
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500])
     }
   }
   // [PUT] /account/cart/update
@@ -272,10 +389,7 @@ class OrderController {
         data: existedCartItem,
       })
     } catch (error) {
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500])
     }
   }
 }
