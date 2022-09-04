@@ -10,6 +10,7 @@ const AdminRole = require("../middlewares/admin.middleware")
 
 // /=> get detail account
 router.get("/detail", Auth, AccountController.getDataById)
+router.put("/info/update", Auth, AccountController.updateUserData)
 
 // /=> get all order of account
 router.get("/order/all", Auth, OrderController.getAllOrder)

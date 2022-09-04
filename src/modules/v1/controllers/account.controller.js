@@ -55,6 +55,22 @@ class AccountController {
       })
     }
   }
+  // [PUT] /account/info/update
+  async updateUserData(req, res, next) {
+    try {
+      const userId = req.userId
+      const {fullName, email, phoneNumber, address} = req.body
+      const newUserInfo = {fullName, email, phoneNumber, address}
+      const accountDetail = await User.findByIdAndUpdate(userId, newUserInfo, {
+        returnDocument: "after",
+      })
+      delete accountDetail._doc.password
+      next([200, "UPDATE_SUCCESSFULL", accountDetail])
+    } catch (error) {
+      console.log(error)
+      next([500])
+    }
+  }
 }
 
 module.exports = new AccountController()
