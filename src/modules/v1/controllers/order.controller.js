@@ -223,6 +223,7 @@ class OrderController {
         {
           status: "PENDING",
           paymentHash: paymentHash,
+          paymentMethod: paymentMethod,
         },
         {
           returnDocument: "after",
