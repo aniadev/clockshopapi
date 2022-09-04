@@ -25,18 +25,42 @@ class BoController {
   }
   // [POST] /bo/webhook
   async handleWebhook(req, res, next) {
-    const {key} = req.query
-    const {event_type, resource} = req.body
-    if (key === "clockwoodshop" && event_type === "PAYMENT.SALE.COMPLETED") {
-      const paymentHash = resource.parent_payment
-      const invoiceNumber = resource.invoice_number
-      const orderId = invoiceNumber
-      const orderData = await Order.findById(orderId)
-      logger.info(orderData)
-      next([200, "WEBHOOK_HANDLER", req.body])
-    } else {
-      logger.warn(JSON.stringify({key, event_type}))
-      next([400, "ACCESS_DENIED"])
+    try {
+      const {key} = req.query
+      const {event_type, resource} = req.body
+      if (key === "clockwoodshop" && event_type === "PAYMENT.SALE.COMPLETED") {
+        const paymentHash = resource.parent_payment
+        const invoiceNumber = resource.invoice_number
+
+        const orderId = invoiceNumber
+        // insert new transactions
+        const newTxs = new Transaction({
+          paymentHash,
+          data: req.body,
+        })
+        const newTxsData = await newTxs.save()
+        // update transaction
+        const updatedOrder = await Order.findOneAndUpdate(
+          {
+            _id: orderId,
+            paymentHash,
+            status: "PENDING",
+          },
+          {
+            transactionId: newTxsData._id,
+            status: "APPROVED",
+          },
+          {returnDocument: "after"}
+        )
+        logger.warn(`TRANSACTION: ${updatedOrder._id}`)
+        next([200, "WEBHOOK_HANDLER", req.body])
+      } else {
+        logger.warn(JSON.stringify({key, event_type}))
+        next([400, "ACCESS_DENIED"])
+      }
+    } catch (error) {
+      logger.error(error.message)
+      next([500])
     }
   }
 }

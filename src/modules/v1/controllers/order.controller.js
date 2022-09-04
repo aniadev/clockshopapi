@@ -11,6 +11,7 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
+const logger = require("../../../common/logs")
 const {forEach, map, find, isEqual} = require("lodash")
 const isNull = (data) => {
   let rs = false
@@ -247,6 +248,7 @@ class OrderController {
       next([200, "ORDER_APPROVED_SUCCESSFUL", updatedOrderData])
     } catch (error) {
       console.log(error)
+      logger.error(error.message)
       next([500])
     }
   }
@@ -261,6 +263,7 @@ class OrderController {
         data: existedCartItem,
       })
     } catch (error) {
+      logger.error(error.message)
       next([500])
     }
   }
@@ -270,6 +273,7 @@ class OrderController {
       const allPaymentMethods = await Payment.find()
       next([200, "ALL_PAYMENT_METHODS", allPaymentMethods])
     } catch (error) {
+      logger.error(error.message)
       next([500])
     }
   }
@@ -294,6 +298,7 @@ class OrderController {
         data: allCartItem,
       })
     } catch (error) {
+      logger.error(error.message)
       next([500])
     }
   }
@@ -349,6 +354,7 @@ class OrderController {
         data: newCartItemData,
       })
     } catch (error) {
+      logger.error(error.message)
       next([500])
     }
   }
@@ -390,6 +396,7 @@ class OrderController {
         data: existedCartItem,
       })
     } catch (error) {
+      logger.error(error.message)
       next([500])
     }
   }

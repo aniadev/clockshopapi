@@ -34,8 +34,9 @@ var OrderSchema = new mongoose.Schema(
       default: "",
     },
     transactionId: {
-      type: String,
-      default: "",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "transaction",
+      default: null,
     },
   },
   {
