@@ -24,11 +24,11 @@ module.exports = winston.createLogger({
     // Thiết lập ghi các errors vào file
     new winston.transports.File({
       level: "error",
-      filename: path.join(__dirname, "errors.log"),
+      filename: path.join("logs", "errors.log"),
     }),
     new winston.transports.File({
       level: "warn",
-      filename: path.join(__dirname, "warnings.log"),
+      filename: path.join("logs", "warnings.log"),
     }),
   ],
 })
