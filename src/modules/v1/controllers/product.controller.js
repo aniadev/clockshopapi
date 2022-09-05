@@ -20,11 +20,7 @@ class ProductController {
       const dataType = req.query.type || "clock"
       let responseData
       if (!includes(allProductType, dataType)) {
-        res.status(200).json({
-          status: "FALSE",
-          message: "ERROR_PRODUCT_TYPE",
-        })
-        return
+        next([400, "ERROR_PRODUCT_TYPE"])
       }
       if (dataType === "clock") {
         responseData = await Clock.find()
@@ -39,19 +35,16 @@ class ProductController {
       } else if (dataType === "provider") {
         responseData = await Provider.find()
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        data: {
+      next([
+        200,
+        "PRODUCT_DETAIL",
+        {
           type: dataType,
           data: responseData,
         },
-      })
+      ])
     } catch (error) {
-      console.log(">>> / file: product.controller.js / line 28 / error", error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "External server error",
-      })
+      next([500, "", error])
     }
   }
   // [GET] /product/detail?_id=1234
@@ -64,22 +57,11 @@ class ProductController {
         .populate("materialId", ["name", "info"])
         .populate("providerId")
       if (!itemData) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "NOT_FOUND",
-        })
-        return
+        next([404, "CLOCK_NOT_FOUND"])
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        data: itemData,
-      })
+      next([200, "CLOCK_DATA", itemData])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "External server error",
-      })
+      next([500, "", error])
     }
   }
   // [GET] /product/search?keyword=1234
@@ -98,8 +80,7 @@ class ProductController {
 
       next([200, "SEARCH", {keyword, result: searchRs}])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
   // [POST] /product/create-clock
@@ -116,34 +97,17 @@ class ProductController {
         numOfRemain: req.body?.numOfRemain,
       }
       if (isNull(newClock)) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([400, "EMPTY_DATA"])
       }
       const existedClock = await Clock.findOne({model: newClock.model})
       if (existedClock) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EXISTED",
-        })
-        return
+        next([400, "CLOCK_MODEL_EXISTED"])
       }
       const newClock_doc = new Clock(newClock)
       const newClockData = await newClock_doc.save()
-
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "CREATED_SUCCESSFUL",
-        data: newClockData,
-      })
+      next([200, "CREATED_SUCCESSFUL", newClockData])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "External server error",
-      })
+      next([500, "", error])
     }
   }
   // [PUT] /product/update-clock
@@ -164,23 +128,11 @@ class ProductController {
         returnDocument: "after",
       })
       if (!existedClock) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "NOT_FOUND",
-        })
-        return
+        next([404, "NOT_FOUND"])
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "UPDATED_SUCCESSFUL",
-        data: existedClock,
-      })
+      next([200, "UPDATED_SUCCESSFUL", existedClock])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "External server error",
-      })
+      next([500, "", error])
     }
   }
 
@@ -193,32 +145,17 @@ class ProductController {
         description: req.body?.description,
       }
       if (isNull(newClockType)) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([400, "EMPTY_DATA"])
       }
       const existClockType = await ClockType.findOne({name: newClockType.name})
       if (existClockType) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EXISTED",
-        })
-        return
+        next([400, "CLOCK_TYPE_EXISTED"])
       }
       const newDoc = new ClockType(newClockType)
       const doc = await newDoc.save()
-      res.status(200).json({
-        status: "SUCCESS",
-        data: doc,
-      })
+      next([200, "CREATED_SUCCESSFUL", doc])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "External server error",
-      })
+      next([500, "", error])
     }
   }
 
@@ -226,17 +163,9 @@ class ProductController {
   async getAllMaterial(req, res, next) {
     try {
       const allMaterial = await Material.find()
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "CREATED_SUCCESSFUL",
-        data: allMaterial,
-      })
+      next([200, "CREATED_SUCCESSFUL", allMaterial])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
   // [POST] /product/create-material
@@ -244,33 +173,17 @@ class ProductController {
     try {
       const {name, info} = req.body
       if (!name) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([400, "EMPTY_DATA"])
       }
       const existMaterial = await Material.findOne({name})
       if (existMaterial) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EXISTED",
-        })
-        return
+        next([400, "MATERIAL_EXISTED"])
       }
       const newMaterial = new Material({name, info})
       const newMaterialData = await newMaterial.save()
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "CREATED_SUCCESSFUL",
-        data: newMaterialData,
-      })
+      next([200, "CREATED_SUCCESSFUL", newMaterialData])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
   // [POST] /product/update-material
@@ -278,31 +191,15 @@ class ProductController {
     try {
       const {name, info} = req.body
       if (!name) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([400, "EMPTY_DATA"])
       }
       const updatedMaterial = await Material.findOneAndUpdate({name}, {info})
       if (!updatedMaterial) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "NOT_FOUND",
-        })
-        return
+        next([404, "NOT_FOUND"])
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "UPDATED_SUCCESSFUL",
-        data: updatedMaterial,
-      })
+      next([200, "UPDATED_SUCCESSFUL", updatedMaterial])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
   // [PUT] /product/delete-material
@@ -310,28 +207,14 @@ class ProductController {
     try {
       const {materialId} = req.body
       if (!materialId) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "NO_MATERIAL_ID",
-        })
-        return
+        next([400, "EMPTY_MATERIAL_ID"])
       }
       const rs = await Material.findByIdAndDelete(materialId, {
         returnOriginal: true,
       })
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "DELETE_SUCCESSFUL",
-        data: {
-          _id: materialId,
-        },
-      })
+      next([200, "DELETE_SUCCESSFUL", {_id: materialId}])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
 
@@ -340,17 +223,9 @@ class ProductController {
   async getAllProvider(req, res, next) {
     try {
       const allProvider = await Provider.find()
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "CREATED_SUCCESSFUL",
-        data: allProvider,
-      })
+      next([200, "CREATED_SUCCESSFUL", allProvider])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
   // [POST] /product/create-provider
@@ -358,33 +233,17 @@ class ProductController {
     try {
       const {name, address, phoneNumber} = req.body
       if (!name) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_DATA",
-        })
-        return
+        next([400, "EMPTY_DATA"])
       }
       const existProvider = await Provider.findOne({name})
       if (existProvider) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EXISTED",
-        })
-        return
+        next([400, "PROVIDER_EXISTED"])
       }
       const newProvider = new Provider({name, address, phoneNumber})
       const newProviderData = await newProvider.save()
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "CREATED_SUCCESSFUL",
-        data: newProviderData,
-      })
+      next([200, "CREATED_SUCCESSFUL", newProviderData])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
   // [POST] /product/update-material
@@ -425,28 +284,14 @@ class ProductController {
     try {
       const {providerId} = req.body
       if (!providerId) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "NO_PROVIDER_ID",
-        })
-        return
+        next([400, "EMPTY_PROVIDER_ID"])
       }
       const rs = await Provider.findByIdAndDelete(providerId, {
         returnOriginal: true,
       })
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "DELETE_SUCCESSFUL",
-        data: {
-          _id: providerId,
-        },
-      })
+      next([200, "DELETE_SUCCESSFUL", {_id: providerId}])
     } catch (error) {
-      console.log(error)
-      res.status(500).json({
-        status: "ERROR",
-        message: "EXTERNAL_SERVER_ERROR",
-      })
+      next([500, "", error])
     }
   }
 }
