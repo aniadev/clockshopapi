@@ -82,7 +82,8 @@ function keywordToRegex(str) {
   str = str.replaceAll("O", `(O|Ó|Ò|Õ|Ọ|Ô|Ố|Ồ|Ỗ|Ộ|Ơ|Ớ|Ờ|Ỡ|Ợ)`)
   str = str.replaceAll("D", `(D|Đ)`)
   str = str.replaceAll("d", `(d|đ)`)
-  str = str.replaceAll(/ \.|\?|\@|\#|\,/g, ``)
+  str = str.replaceAll(/\.|\?|\@|\#|\,/g, ``)
+  str = str.replaceAll(" ", `.*?`)
 
   return `${str}`
 }
@@ -165,6 +166,9 @@ class ProductController {
       const searchRs = await Clock.find({
         model: {$regex, $options: "gmi"},
       })
+        .populate("clockTypeId", ["name", "description"])
+        .populate("materialId", ["name", "info"])
+        .populate("providerId")
 
       next([200, "SEARCH", {keyword, result: searchRs}])
     } catch (error) {
