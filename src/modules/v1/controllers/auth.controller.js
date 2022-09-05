@@ -32,13 +32,13 @@ class AuthController {
       let fullName = req.body?.fullName
       let address = req.body?.address
       if (!email || !password || !phoneNumber || !username || !fullName) {
-        throw Error("INVALID_FIELD")
+        next([400, "EMPTY_FIELD"])
       }
       const existUser = await User.findOne({
         $or: [{username}, {email}, {phoneNumber}],
       })
       if (existUser) {
-        throw Error("ACCOUNT_EXISTED")
+        next([400, "EXISTED_ACCOUNT"])
       } else {
         const newUser = new User({
           username,
