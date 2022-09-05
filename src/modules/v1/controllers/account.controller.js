@@ -36,10 +36,6 @@ class AccountController {
   async getDataById(req, res, next) {
     try {
       const userId = req.userId
-      console.log(
-        ">>> / file: account.controller.js / line 39 / itemId",
-        userId
-      )
       const accountDetail = await User.findById(userId)
       delete accountDetail._doc.password
       res.status(200).json({

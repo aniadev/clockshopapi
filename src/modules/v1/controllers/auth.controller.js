@@ -2,6 +2,7 @@ const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 const jwt = require("jsonwebtoken")
 const Auth = require("../middlewares/auth.middleware")
 const {User} = require("../../../common/models")
+const logger = require("../../../common/logs")
 
 class AuthController {
   // [GET] /auth/
@@ -11,22 +12,13 @@ class AuthController {
       let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
 
       if (type === "Bearer" && jwt_decoded) {
-        res.status(200).json({
-          statusCode: 200,
-          status: "SUCCESS",
-          message: "User authenticated successfully",
-          data: jwt_decoded,
-        })
+        next([200, "AUTHENTICATED_SUCCESSFULL", jwt_decoded])
       } else {
-        throw Error("Invalid access token")
+        next([401, "TOKEN_INVALID"])
       }
     } catch (error) {
-      res.status(400).json({
-        statusCode: 400,
-        status: "FAIL",
-        message: "User authenticated failed",
-        message: error.message,
-      })
+      logger.error(error.message)
+      next([500])
     }
   }
 
@@ -65,20 +57,20 @@ class AuthController {
           fullName,
         }
         const accessToken = jwt.sign(userData, process.env.ACCESS_TOKEN_SECRET)
-        res.status(200).json({
-          statusCode: 200,
-          status: "SUCCESS",
-          message: "User registered successfully",
-          data: {
-            accessToken,
-          },
-        })
+
+        next([200, "REGISTERED_SUCCESSFULL", {accessToken}])
+        // res.status(200).json({
+        //   statusCode: 200,
+        //   status: "SUCCESS",
+        //   message: "User registered successfully",
+        //   data: {
+        //     accessToken,
+        //   },
+        // })
       }
     } catch (error) {
-      res.status(400).json({
-        status: error.message,
-        message: error.message,
-      })
+      logger.error(error.message)
+      next([500])
     }
   }
 
@@ -88,18 +80,14 @@ class AuthController {
       let username = req.body?.username
       let password = req.body?.password
       if (!username || !password) {
-        throw Error("username, password are required")
+        next([400, "WRONG_USERNAME_OR_PASSWORD"])
       }
       const result = await User.authenticate(
         username,
         password,
         (err, user) => {
           if (err) {
-            let response = {
-              status: err.status,
-              message: err.message,
-            }
-            return res.status(401).json(response)
+            next([404, "WRONG_USERNAME_OR_PASSWORD"])
           }
           if (user) {
             let userData = {
@@ -116,22 +104,20 @@ class AuthController {
               userData,
               process.env.ACCESS_TOKEN_SECRET
             )
-            res.status(200).json({
-              status: "SUCCESS",
-              message: "User login successfully",
-              data: {
+            next([
+              200,
+              "LOGIN_SUCCESSFUL",
+              {
                 accessToken,
                 userData,
               },
-            })
+            ])
           }
         }
       )
     } catch (error) {
-      res.status(400).json({
-        status: "FAIL",
-        message: error.message,
-      })
+      logger.error(error.message)
+      next([500])
     }
   }
 }
