@@ -1,3 +1,4 @@
+const logger = require("../../common/logs")
 // response handler
 module.exports = function (data, req, res, next) {
   let statusCode,
@@ -10,6 +11,10 @@ module.exports = function (data, req, res, next) {
     status = statusCode === 500 ? "FAIL" : "SUCCESS"
     message = statusCode === 500 ? "EXTERNAL_SERVER_ERROR" : data[1]
     resData = data[2]
+    if (statusCode == 500) {
+      // [500, '', error]
+      logger.error(data?.message || data)
+    }
   } else if (data.length == 2) {
     //[statusCode, message]
     statusCode = data[0] || 500

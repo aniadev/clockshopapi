@@ -1,5 +1,4 @@
-const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
-const Auth = require("../middlewares/auth.middleware")
+const {forEach, map, find, isEqual} = require("lodash")
 const {
   User,
   Cart,
@@ -11,46 +10,36 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
-const logger = require("../../../common/logs")
-const {forEach, map, find, isEqual} = require("lodash")
-const isNull = (data) => {
-  let rs = false
-  forEach(data, (value, key) => {
-    if (data[key] == undefined) rs = true
-    if (typeof value == "object" && value.length == 0) rs = true
-  })
-  return rs
-}
-const hasNullInArray = (arr) => {
-  let rs = false
-  forEach(arr, (value, key) => {
-    if (value == undefined) rs = true
-  })
-  return rs
-}
-var isDuplicateArr = (arr) => {
-  let rs = false
-  map(arr, function (o, i) {
-    let eq = find(arr, function (e, ind) {
-      if (i > ind) {
-        return isEqual(e, o)
-      }
-    })
-    console.log(eq)
-    if (eq) rs = true
-  })
-  return rs
-}
+// const logger = require("../../../common/logs")
+// const isNull = (data) => {
+//   let rs = false
+//   forEach(data, (value, key) => {
+//     if (data[key] == undefined) rs = true
+//     if (typeof value == "object" && value.length == 0) rs = true
+//   })
+//   return rs
+// }
+// const hasNullInArray = (arr) => {
+//   let rs = false
+//   forEach(arr, (value, key) => {
+//     if (value == undefined) rs = true
+//   })
+//   return rs
+// }
+// var isDuplicateArr = (arr) => {
+//   let rs = false
+//   map(arr, function (o, i) {
+//     let eq = find(arr, function (e, ind) {
+//       if (i > ind) {
+//         return isEqual(e, o)
+//       }
+//     })
+//     console.log(eq)
+//     if (eq) rs = true
+//   })
+//   return rs
+// }
 class OrderController {
-  // [GET] /
-  index(req, res, next) {
-    res.json({
-      statusCode: 200,
-      status: "SUCCESS",
-      message: "Welcome to API",
-    })
-  }
-
   //
   //
   //  /===========================> ORDER
