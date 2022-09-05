@@ -1,25 +1,12 @@
-const User = require("./user.model")
-const Order = require("./order.model")
-const OrderDetail = require("./orderDetail.model")
-const Cart = require("./cart.model")
-const Clock = require("./clock.model")
-const ClockType = require("./clockType.model")
-const Provider = require("./provider.model")
-const Material = require("./material.model")
-const Payment = require("./paymentMethod.model")
-const Transaction = require("./transaction.model")
-
-const Models = {
-  User,
-  Order,
-  OrderDetail,
-  Cart,
-  Clock,
-  ClockType,
-  Provider,
-  Material,
-  Payment,
-  Transaction,
+module.exports = Models = {
+  User: require("./user.model"),
+  Order: require("./order.model"),
+  OrderDetail: require("./orderDetail.model"),
+  Cart: require("./cart.model"),
+  Clock: require("./clock.model"),
+  ClockType: require("./clockType.model"),
+  Provider: require("./provider.model"),
+  Material: require("./material.model"),
+  Payment: require("./paymentMethod.model"),
+  Transaction: require("./transaction.model"),
 }
-
-module.exports = Models

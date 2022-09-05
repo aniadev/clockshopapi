@@ -169,6 +169,7 @@ class ProductController {
         .populate("clockTypeId", ["name", "description"])
         .populate("materialId", ["name", "info"])
         .populate("providerId")
+        .sort({unitPrice: 1})
 
       next([200, "SEARCH", {keyword, result: searchRs}])
     } catch (error) {
