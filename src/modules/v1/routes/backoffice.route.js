@@ -6,5 +6,5 @@ const BoController = require("../controllers/backoffice.controller")
 
 // api.dev/bo/
 
-router.post("/webhook", AdminRole, BoController.handleWebhook)
+router.post("/webhook", BoController.handleWebhook)
 module.exports = router
