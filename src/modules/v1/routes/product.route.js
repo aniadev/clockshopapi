@@ -4,10 +4,13 @@ const router = express.Router()
 const ProductController = require("../controllers/product.controller")
 const AdminRole = require("../middlewares/admin.middleware")
 
+// domain.dev/product/
+
 // /=> get all items
 router.get("/", ProductController.getAllData)
 // /=> get all items by type
 router.get("/all", ProductController.getAllData)
+router.get("/search", ProductController.searchProduct)
 
 // /=> get detail item
 router.get("/detail", ProductController.getDataById)
