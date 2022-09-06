@@ -1,8 +1,4 @@
-/node_modules
-
-/logs
-/logs/errors.log
-/logs/warinings.log
-
+/node_modules/
+/src/logs
 request.rest
 .env
