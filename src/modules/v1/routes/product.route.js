@@ -17,6 +17,7 @@ router.get("/detail", ProductController.getDataById)
 // /=> get detail item
 router.post("/create-clock", AdminRole, ProductController.createNewClock)
 router.put("/update-clock", AdminRole, ProductController.updateClock)
+router.delete("/delete-clock", AdminRole, ProductController.deleteClock)
 
 //
 // /=====================> clockType

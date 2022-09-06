@@ -12,7 +12,7 @@ const {
   Provider,
   Transaction,
 } = require("../../../common/models")
-const logger = require("../../../common/logs")
+const {logger, boServives} = require("../services")
 
 class BoController {
   // [GET] /
@@ -58,6 +58,20 @@ class BoController {
         logger.warn(JSON.stringify({key, event_type}))
         next([400, "ACCESS_DENIED"])
       }
+    } catch (error) {
+      logger.error(error.message)
+      next([500])
+    }
+  }
+
+  // [POST] /bo/statistic?type=[clockType | provider | Material]
+  async handleStatistic(req, res, next) {
+    try {
+      const {type} = req.query
+      const statisticType = ["CLOCKTYPE", "PROVIDER", "MATERIAL"]
+      if (!statisticType.includes(type)) next([404, "FILTER_TYPE_INVALID"])
+      console.log(boServives)
+      // await boServives.filterClockByType(type)
     } catch (error) {
       logger.error(error.message)
       next([500])

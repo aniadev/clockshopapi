@@ -135,6 +135,22 @@ class ProductController {
       next([500, "", error])
     }
   }
+  // [DELETE] /product/delete-clock
+  async deleteClock(req, res, next) {
+    try {
+      const clockId = req.body?.clockId
+      if (!clockId) next([400, "EMPTY_CLOCK_ID"])
+      const deletedClock = await Clock.findByIdAndDelete(clockId, {
+        returnDocument: "after",
+      })
+      if (!deletedClock) {
+        next([404, "NOT_FOUND"])
+      }
+      next([200, "DELETED_SUCCESSFUL", deletedClock])
+    } catch (error) {
+      next([500, "", error])
+    }
+  }
 
   //  CLOCKTYPE
   // [POST] /product/create-clocktype
