@@ -10,6 +10,7 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
+const {hasNullInArray, isDuplicateArr, isNull, logger} = require("../services")
 // const logger = require("../../../common/logs")
 // const isNull = (data) => {
 //   let rs = false
@@ -48,10 +49,9 @@ class OrderController {
   async getAllOrder(req, res, next) {
     try {
       const userId = req.userId
-      console.log(">>> / file: order.controller.js / line 33 / userId", userId)
       const allOrderItem = await Order.find({
         $and: [
-          {userId},
+          {user: userId},
           {
             $or: [
               {status: "PENDING"},
@@ -79,16 +79,18 @@ class OrderController {
       })
       const allOrderDetail = await Promise.all(orderDetailPromise)
       forEach(allOrderItem, (orderItem, index) => {
-        allOrderItem[index]._doc.allItem = allOrderDetail[index] || {}
+        let allItems = allOrderDetail[index]
+        let totalPrice = 0
+        forEach(
+          allItems,
+          (item) => (totalPrice += item?.quantity * item?.unitPrice)
+        )
+        allOrderItem[index]._doc.allItem = allItems || []
+        allOrderItem[index]._doc.totalPrice = totalPrice
       })
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "ALL_ORDER_ITEMS",
-        data: allOrderItem,
-      })
+      next([200, "ALL_ORDER_ITEMS", allOrderItem])
     } catch (error) {
-      console.log(error)
-      next([500])
+      next([500, "", error])
     }
   }
 
@@ -182,8 +184,7 @@ class OrderController {
 
       next([200, "ORDER_CREATED_SUCCESSFUL", newOrderDataResponse])
     } catch (error) {
-      console.log(error)
-      next([500])
+      next([500, "", error])
     }
   }
 
@@ -236,24 +237,16 @@ class OrderController {
 
       next([200, "ORDER_APPROVED_SUCCESSFUL", updatedOrderData])
     } catch (error) {
-      console.log(error)
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
   // [PUT] /account/order/update
   async updateOrder(req, res, next) {
     try {
       const userId = req.userId
-
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "UPDATED_SUCCESSFUL",
-        data: existedCartItem,
-      })
+      next([404, "API_MAINTAIN"])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
   // [GET] /account/order/all-payment
@@ -262,8 +255,7 @@ class OrderController {
       const allPaymentMethods = await Payment.find()
       next([200, "ALL_PAYMENT_METHODS", allPaymentMethods])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
 
@@ -281,14 +273,9 @@ class OrderController {
       })
         .sort({createdAt: -1})
         .populate("clockId")
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "ALL_CART_ITEMS",
-        data: allCartItem,
-      })
+      next([200, "ALL_CART_ITEMS", allCartItem])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
   // [POST] /account/cart/add
@@ -298,19 +285,11 @@ class OrderController {
       let {clockId, quantity} = req.body
       quantity = quantity || 1
       if (!clockId) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_CLOCK_ID",
-        })
-        return
+        next([400, "EMPTY_CLOCK_ID"])
       }
       const existedClock = await Clock.findById(clockId)
       if (!existedClock) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "CLOCK_ID_INVALID",
-        })
-        return
+        next([400, "CLOCK_ID_INVALID"])
       }
       const existedCartItem = await Cart.findOne({clockId, userId})
       let newCartItem, newCartItemData
@@ -320,11 +299,7 @@ class OrderController {
       } else {
         let newQuantity = quantity + existedCartItem.quantity
         if (newQuantity > existedClock.numOfRemain) {
-          res.status(404).json({
-            status: "FAIL",
-            message: "OUT_OF_STOCK",
-          })
-          return
+          next([400, "OUT_OF_STOCK"])
         }
         newCartItem = {
           clockId,
@@ -337,14 +312,9 @@ class OrderController {
           {returnDocument: "after"}
         )
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "ADD_TO_CART_SUCCESSFUL",
-        data: newCartItemData,
-      })
+      next([200, "ADD_TO_CART_SUCCESSFUL", newCartItemData])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
   // [PUT] /account/cart/update
@@ -353,19 +323,11 @@ class OrderController {
       const userId = req.userId
       let {clockId, quantity} = req.body
       if (!clockId) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "EMPTY_CLOCK_ID",
-        })
-        return
+        next([400, "EMPTY_CLOCK_ID"])
       }
       const existedClock = await Clock.findById(clockId)
       if (quantity > existedClock.numOfRemain) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "OUT_OF_STOCK",
-        })
-        return
+        next([400, "OUT_OF_STOCK"])
       }
       const existedCartItem = await Cart.findOneAndUpdate(
         {clockId, userId},
@@ -373,20 +335,11 @@ class OrderController {
         {returnDocument: "after"}
       )
       if (!existedCartItem) {
-        res.status(404).json({
-          status: "FAIL",
-          message: "ITEM_NOT_FOUND",
-        })
-        return
+        next([404, "ITEM_NOT_FOUND"])
       }
-      res.status(200).json({
-        status: "SUCCESS",
-        message: "UPDATED_SUCCESSFUL",
-        data: existedCartItem,
-      })
+      next([200, "UPDATED_SUCCESSFUL", existedCartItem])
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
 }

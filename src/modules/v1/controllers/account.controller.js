@@ -11,6 +11,7 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
+const {isNull} = require("../services")
 
 class AccountController {
   // [GET] /account/all
@@ -51,14 +52,17 @@ class AccountController {
       const userId = req.userId
       const {fullName, email, phoneNumber, address} = req.body
       const newUserInfo = {fullName, email, phoneNumber, address}
+      if ((!fullName, !email, !phoneNumber, !address)) next([400, "EMPTY_DATA"])
       const accountDetail = await User.findByIdAndUpdate(userId, newUserInfo, {
         returnDocument: "after",
       })
       delete accountDetail._doc.password
-      next([200, "UPDATE_SUCCESSFULL", accountDetail])
+      next([200, "UPDATED_INFO_SUCCESSFULL", accountDetail])
     } catch (error) {
-      console.log(error)
-      next([500])
+      if (error.codeName === "DuplicateKey") {
+        next([400, "DUPLICATE_VALUE", error.keyValue])
+      }
+      next([500, "", error])
     }
   }
 }
