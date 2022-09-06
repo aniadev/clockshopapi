@@ -1,3 +1,4 @@
+const {forEach, map, find, isEqual} = require("lodash")
 const isNull = (data) => {
   let rs = false
   forEach(data, (value, key) => {
