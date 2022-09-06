@@ -12,7 +12,8 @@ const {
   Provider,
   Transaction,
 } = require("../../../common/models")
-const {logger, boServives} = require("../services")
+const {logger, boServices} = require("../services")
+const {forEach} = require("lodash")
 
 class BoController {
   // [GET] /
@@ -64,14 +65,39 @@ class BoController {
     }
   }
 
-  // [POST] /bo/statistic?type=[clockType | provider | Material]
+  // [GET] /bo/statistic?type=[CLOCKTYPE | PROVIDER | MATERIAL]
   async handleStatistic(req, res, next) {
     try {
       const {type} = req.query
-      const statisticType = ["CLOCKTYPE", "PROVIDER", "MATERIAL"]
-      if (!statisticType.includes(type)) next([404, "FILTER_TYPE_INVALID"])
-      console.log(boServives)
-      // await boServives.filterClockByType(type)
+      const statisticalType = ["CLOCKTYPE", "PROVIDER", "MATERIAL"]
+      if (!statisticalType.includes(type)) next([404, "FILTER_TYPE_INVALID"])
+
+      let statsResult = {
+        type,
+        stats: [],
+      }
+      statsResult.stats = await boServices.statisticClockByType(type)
+      next([200, "STATISTIC_BY_" + type, statsResult])
+    } catch (error) {
+      logger.error(error.message)
+      next([500])
+    }
+  }
+  // [GET] /bo/revenue-stats
+  async handleRevenueStats(req, res, next) {
+    try {
+      let statsResult = await boServices.getAllOrder()
+      next([400, "MAINTAIN"])
+    } catch (error) {
+      logger.error(error.message)
+      next([500])
+    }
+  }
+  // [GET] /bo/order/all
+  async getAllOrder(req, res, next) {
+    try {
+      let allOrder = await boServices.getAllOrder()
+      next([200, "BO_ALL_ORDER", allOrder])
     } catch (error) {
       logger.error(error.message)
       next([500])

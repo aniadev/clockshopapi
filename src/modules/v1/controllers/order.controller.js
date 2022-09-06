@@ -10,36 +10,14 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
-const {hasNullInArray, isDuplicateArr, isNull, logger} = require("../services")
-// const logger = require("../../../common/logs")
-// const isNull = (data) => {
-//   let rs = false
-//   forEach(data, (value, key) => {
-//     if (data[key] == undefined) rs = true
-//     if (typeof value == "object" && value.length == 0) rs = true
-//   })
-//   return rs
-// }
-// const hasNullInArray = (arr) => {
-//   let rs = false
-//   forEach(arr, (value, key) => {
-//     if (value == undefined) rs = true
-//   })
-//   return rs
-// }
-// var isDuplicateArr = (arr) => {
-//   let rs = false
-//   map(arr, function (o, i) {
-//     let eq = find(arr, function (e, ind) {
-//       if (i > ind) {
-//         return isEqual(e, o)
-//       }
-//     })
-//     console.log(eq)
-//     if (eq) rs = true
-//   })
-//   return rs
-// }
+const {
+  hasNullInArray,
+  isDuplicateArr,
+  isNull,
+  logger,
+  boServices,
+} = require("../services")
+
 class OrderController {
   //
   //
@@ -49,45 +27,7 @@ class OrderController {
   async getAllOrder(req, res, next) {
     try {
       const userId = req.userId
-      const allOrderItem = await Order.find({
-        $and: [
-          {user: userId},
-          {
-            $or: [
-              {status: "PENDING"},
-              {status: "APPROVED"},
-              {status: "SUCCESS"},
-            ],
-          },
-        ],
-      })
-        .sort({createdAt: -1})
-        .populate("user", ["fullName", "email", "address"])
-        .populate("paymentMethod", [
-          "type",
-          "cardNumber",
-          "accountNumber",
-          "qrCode",
-        ])
-      const orderDetailPromise = []
-      forEach(allOrderItem, (orderItem) => {
-        orderDetailPromise.push(
-          OrderDetail.find({orderId: orderItem._id}).populate("clockId", [
-            "model",
-          ])
-        )
-      })
-      const allOrderDetail = await Promise.all(orderDetailPromise)
-      forEach(allOrderItem, (orderItem, index) => {
-        let allItems = allOrderDetail[index]
-        let totalPrice = 0
-        forEach(
-          allItems,
-          (item) => (totalPrice += item?.quantity * item?.unitPrice)
-        )
-        allOrderItem[index]._doc.allItem = allItems || []
-        allOrderItem[index]._doc.totalPrice = totalPrice
-      })
+      const allOrderItem = await boServices.getAllOrderByUserId(userId)
       next([200, "ALL_ORDER_ITEMS", allOrderItem])
     } catch (error) {
       next([500, "", error])

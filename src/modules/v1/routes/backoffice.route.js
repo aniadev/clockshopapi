@@ -8,7 +8,10 @@ const BoController = require("../controllers/backoffice.controller")
 
 router.post("/webhook", BoController.handleWebhook)
 
-// stats:
-router.get("/statistic", BoController.handleStatistic)
+// api.dev/bo/statistic?type=[CLOCKTYPE | PROVIDER | MATERIAL]
+router.get("/statistic", AdminRole, BoController.handleStatistic)
+
+router.get("/revenue-stats", AdminRole, BoController.handleRevenueStats)
+router.get("/order/all", AdminRole, BoController.getAllOrder)
 
 module.exports = router
