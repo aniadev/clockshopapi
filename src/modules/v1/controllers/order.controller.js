@@ -51,7 +51,7 @@ class OrderController {
       const userId = req.userId
       const allOrderItem = await Order.find({
         $and: [
-          {userId},
+          {user: userId},
           {
             $or: [
               {status: "PENDING"},
