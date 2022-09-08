@@ -12,7 +12,7 @@ const {
   Provider,
   Transaction,
 } = require("../../../common/models")
-const {logger, boServices} = require("../services")
+const {logger, boServices, isNull} = require("../services")
 const {forEach} = require("lodash")
 
 class BoController {
@@ -101,6 +101,36 @@ class BoController {
     } catch (error) {
       logger.error(error.message)
       next([500])
+    }
+  }
+  // [POST] /bo/order/cod-approve
+  async approveCodOrder(req, res, next) {
+    try {
+      const {orderId} = req.body
+      if (isNull({orderId})) {
+        return next([400, "EMPTY_DATA"])
+      }
+      const orderData = await boServices.getOrderDataById(orderId)
+      if (
+        orderData.status === "PENDING" &&
+        orderData.paymentMethod.type === "COD"
+      ) {
+        await Order.findByIdAndUpdate(orderId, {status: "APPROVED"})
+        orderData._doc.status = "APPROVED"
+      } else if (
+        orderData.status === "APPROVED" &&
+        orderData.paymentMethod.type === "COD"
+      ) {
+        next([401, "ORDER_ALREADY_APPROVED"])
+      } else if (orderData.paymentMethod.type !== "COD") {
+        next([401, "ONLY_APPROVE_COD_ORDER"])
+      } else {
+        logger.warn("ORDER_ACCEPT: " + orderData._id + "/" + orderData.status)
+        next([403, "ACCESS_DENIED"])
+      }
+      next([200, "COD_APPROVE_SUCCESS", orderData])
+    } catch (error) {
+      next([500, "", error])
     }
   }
 }

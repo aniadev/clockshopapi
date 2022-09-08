@@ -194,11 +194,14 @@ class OrderController {
         return next([400, "EMPTY_DATA"])
       }
       const orderData = await boServices.getOrderDataById(orderId)
-      if (orderData.status === "APPROVED") {
+      if (userId === orderData.user._id && orderData.status === "APPROVED") {
         await Order.findByIdAndUpdate(orderId, {status: "SUCCESS"})
         orderData._doc.status = "SUCCESS"
-      } else if (orderData.status === "SUCCESS") {
-        next([403, "ORDER_ALREADY_SUCCESS"])
+      } else if (
+        userId === orderData.user._id &&
+        orderData.status === "SUCCESS"
+      ) {
+        next([401, "ORDER_ALREADY_SUCCESS"])
       } else {
         next([403, "ACCESS_DENIED"])
       }
