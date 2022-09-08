@@ -87,7 +87,7 @@ class BoController {
   async handleRevenueStats(req, res, next) {
     try {
       let statsResult = await boServices.getAllOrder()
-      next([400, "MAINTAIN"])
+      next([400, "MAINTAIN", statsResult])
     } catch (error) {
       logger.error(error.message)
       next([500])

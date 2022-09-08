@@ -180,6 +180,33 @@ class OrderController {
       next([500, "", error])
     }
   }
+  // [POST] /account/order/customer-accept
+  //   {
+  //     "orderId": "6312e6970fb72be64dece7c6",
+  //     "paymentMethod": "630d88bc15caa4f8904ea7ec",
+  //     "paymentHash": "paymentHash"
+  //  }
+  async completeOrderById(req, res, next) {
+    try {
+      const userId = req.userId
+      const {orderId} = req.body
+      if (isNull({orderId})) {
+        return next([400, "EMPTY_DATA"])
+      }
+      const orderData = await boServices.getOrderDataById(orderId)
+      if (orderData.status === "APPROVED") {
+        await Order.findByIdAndUpdate(orderId, {status: "SUCCESS"})
+        orderData._doc.status = "SUCCESS"
+      } else if (orderData.status === "SUCCESS") {
+        next([403, "ORDER_ALREADY_SUCCESS"])
+      } else {
+        next([403, "ACCESS_DENIED"])
+      }
+      next([200, "ORDER_COMPLETED", orderData])
+    } catch (error) {
+      next([500, "", error])
+    }
+  }
   // [PUT] /account/order/update
   async updateOrder(req, res, next) {
     try {

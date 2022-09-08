@@ -16,6 +16,7 @@ router.put("/info/update", Auth, AccountController.updateUserData)
 router.get("/order/all", Auth, OrderController.getAllOrder)
 router.post("/order/create", Auth, OrderController.createAnOrder)
 router.post("/order/approve", Auth, OrderController.approveOrderById)
+router.post("/order/customer-accept", Auth, OrderController.completeOrderById)
 router.get("/order/all-payment", OrderController.getAllPaymentMethods)
 router.get("/order", Auth, OrderController.getAllOrder)
 

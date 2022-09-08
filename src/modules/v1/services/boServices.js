@@ -102,7 +102,10 @@ async function getAllOrderByUserId(userId) {
   let orderDetailQueries = []
   forEach(allOrder, (item) => {
     orderDetailQueries.push(
-      OrderDetail.find({orderId: item._id}).populate("clockId", ["model"])
+      OrderDetail.find({orderId: item._id}).populate("clockId", [
+        "model",
+        "images",
+      ])
     )
   })
   const allOrderDetails = await Promise.all(orderDetailQueries)
@@ -116,6 +119,26 @@ async function getAllOrderByUserId(userId) {
   return allOrder
 }
 
+async function getOrderDataById(_id) {
+  const orderData = await Order.findById(_id)
+    .populate("user", ["fullName", "phoneNumber", "email"])
+    .populate("paymentMethod", [
+      "type",
+      "cardNumber",
+      "accountNumber",
+      "qrCode",
+    ])
+  const allOrderDetails = await OrderDetail.find({
+    orderId: _id,
+  }).populate("clockId", ["model", "images"])
+  let allItems = allOrderDetails
+  let totalPrice = 0
+  forEach(allItems, (o) => (totalPrice += o.unitPrice * o.quantity))
+  orderData._doc.allItems = allItems
+  orderData._doc.totalPrice = totalPrice
+  return orderData
+}
+
 module.exports = {
   getAllClockType,
   getAllProvider,
@@ -124,4 +147,5 @@ module.exports = {
   //   statisticRevenue,
   getAllOrderByUserId,
   getAllOrder,
+  getOrderDataById,
 }
