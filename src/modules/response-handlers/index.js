@@ -8,7 +8,7 @@ module.exports = function (data, req, res, next) {
   if (data.length == 3) {
     // [statusCode, message, data]
     statusCode = data[0] || 500
-    status = statusCode === 500 ? "FAIL" : "SUCCESS"
+    status = statusCode !== 200 ? "FAIL" : "SUCCESS"
     message = statusCode === 500 ? "EXTERNAL_SERVER_ERROR" : data[1]
     resData = data[2]
     if (statusCode == 500) {
