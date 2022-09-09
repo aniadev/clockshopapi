@@ -189,12 +189,16 @@ class OrderController {
   async completeOrderById(req, res, next) {
     try {
       const userId = req.userId
+      console.log(">>> / file: order.controller.js / line 192 / userId", userId)
       const {orderId} = req.body
       if (isNull({orderId})) {
         return next([400, "EMPTY_DATA"])
       }
       const orderData = await boServices.getOrderDataById(orderId)
-      if (userId === orderData.user._id && orderData.status === "APPROVED") {
+      if (
+        userId === orderData.user._id.toString() &&
+        orderData.status === "APPROVED"
+      ) {
         await Order.findByIdAndUpdate(orderId, {status: "SUCCESS"})
         orderData._doc.status = "SUCCESS"
       } else if (
