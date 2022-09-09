@@ -165,16 +165,24 @@ class OrderController {
         ["model"]
       )
       updatedOrderData._doc.allItems = allOrderItems
-
       // delete item in cart
-      let deleteQueries = []
-      forEach(allOrderItems, (item) => {
-        deleteQueries.push(
-          Cart.findOneAndDelete({userId, clockId: item.clockId._id.toString()})
-        )
+      forEach(allOrderItems, async (item) => {
+        let clockData = await Clock.findById(item.clockId._id)
+        let newRemain = clockData.numOfRemain - item.quantity
+        if (newRemain < 0)
+          next([
+            400,
+            "OUT_OF_STOCK",
+            {quantity: item.quantity, numOfRemain: clockData.numOfRemain},
+          ])
+        await Clock.findByIdAndUpdate(item.clockId._id, {
+          numOfRemain: clockData.numOfRemain - item.quantity,
+        })
+        await Cart.findOneAndDelete({
+          userId,
+          clockId: item.clockId._id.toString(),
+        })
       })
-      await Promise.all(deleteQueries)
-
       next([200, "ORDER_APPROVED_SUCCESSFUL", updatedOrderData])
     } catch (error) {
       next([500, "", error])
