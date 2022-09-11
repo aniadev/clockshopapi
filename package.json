@@ -32,6 +32,6 @@
     "eslint-plugin-prettier": "^4.2.1",
     "prettier": "^2.7.1"
   },
-  "repository": "https://github.com/phamconghai1999/clockshopapi.git",
-  "author": "haipc_dev <phamcong.hai.90@gmail.com>"
+  "repository": "",
+  "author": ""
 }
