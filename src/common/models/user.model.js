@@ -30,6 +30,10 @@ var UserChema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    deactive: {
+      type: Boolean,
+      default: false,
+    },
     role: {
       type: String,
       enum: ["USER", "ADMIN"],

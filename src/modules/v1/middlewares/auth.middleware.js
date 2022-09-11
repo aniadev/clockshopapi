@@ -1,5 +1,6 @@
 var jwt = require("jsonwebtoken")
 require("dotenv").config()
+const {logger} = require("../services")
 
 Auth = (req, res, next) => {
   // console.log(req.headers.authorization);
@@ -8,29 +9,29 @@ Auth = (req, res, next) => {
     let Authorization = req.headers.authorization
     if (!Authorization) {
       return res.status(401).json({
-        success: false,
-        message: "No token",
+        status: "FAIL",
+        message: "NO_TOKEN",
       })
     }
     let accessToken = Authorization.split(" ")[1]
     let tokenType = Authorization.split(" ")[0]
     let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
     if (tokenType === "Bearer" && jwt_decoded._id) {
-      // console.log(jwt_decoded)
       req.userId = jwt_decoded._id
       // console.log(jwt_decoded.userId);
       next()
     } else {
       res.status(401).json({
         status: "FAIL",
-        message: "Invalid token",
+        message: "TOKEN_INVALID",
       })
     }
   } catch (error) {
     // console.log(error);
-    res.status(401).json({
+    logger.error(error.message)
+    res.status(500).json({
       status: "FAIL",
-      message: error.message,
+      message: "EXTERNALL_SERVER_ERROR",
     })
   }
 }

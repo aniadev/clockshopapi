@@ -2,7 +2,7 @@ const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
 const jwt = require("jsonwebtoken")
 const Auth = require("../middlewares/auth.middleware")
 const {User} = require("../../../common/models")
-const logger = require("../../../common/logs")
+const {logger, userServices} = require("../services")
 
 class AuthController {
   // [GET] /auth/
@@ -10,15 +10,15 @@ class AuthController {
     try {
       const [type, accessToken] = [...req.headers.authorization.split(" ")]
       let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
-
-      if (type === "Bearer" && jwt_decoded) {
+      if (type === "Bearer" && jwt_decoded._id) {
+        const userData = await userServices.getUserData(jwt_decoded._id)
+        if (userData.deactive) next([403, "ACCOUNT_DEACTIVATED"])
         next([200, "AUTHENTICATED_SUCCESSFULL", jwt_decoded])
       } else {
         next([401, "TOKEN_INVALID"])
       }
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
 
@@ -59,18 +59,9 @@ class AuthController {
         const accessToken = jwt.sign(userData, process.env.ACCESS_TOKEN_SECRET)
 
         next([200, "REGISTERED_SUCCESSFULL", {accessToken}])
-        // res.status(200).json({
-        //   statusCode: 200,
-        //   status: "SUCCESS",
-        //   message: "User registered successfully",
-        //   data: {
-        //     accessToken,
-        //   },
-        // })
       }
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
 
@@ -90,34 +81,21 @@ class AuthController {
             next([404, "WRONG_USERNAME_OR_PASSWORD"])
           }
           if (user) {
-            let userData = {
-              _id: user._id,
-              fullName: user.fullName,
-              username: user.username,
-              phoneNumber: user.phoneNumber,
-              address: user.address,
-              email: user.email,
-              role: user.role,
-              createdAt: user.createdAt,
-            }
-            const accessToken = jwt.sign(
-              userData,
-              process.env.ACCESS_TOKEN_SECRET
-            )
+            delete user._doc.password
+            const accessToken = userServices.generateAccessToken(user._doc)
             next([
               200,
               "LOGIN_SUCCESSFUL",
               {
                 accessToken,
-                userData,
+                userData: user,
               },
             ])
           }
         }
       )
     } catch (error) {
-      logger.error(error.message)
-      next([500])
+      next([500, "", error])
     }
   }
 }
