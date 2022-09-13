@@ -11,7 +11,7 @@ const {
   Material,
   Provider,
 } = require("../../../common/models")
-const {isNull} = require("../services")
+const {isNull, logger} = require("../services")
 
 class AccountController {
   // [GET] /account/all
@@ -68,17 +68,21 @@ class AccountController {
   async deactiveAccount(req, res, next) {
     try {
       const userId = req.userId
-      const id = req.query?.userId
-      if (!id || !userId || id !== userId) next([403, "ACCESS_DENIED"])
-      const accountDetail = await User.findByIdAndUpdate(
-        userId,
-        {deactive: true},
-        {
-          returnDocument: "after",
-        }
-      )
-      delete accountDetail._doc.password
-      next([200, "ACCOUNT_DEACTIVATED", accountDetail])
+      //   const id = req.query?.userId
+      //   console.log(">>> / file: account.controller.js / line 72 / id", id)
+      logger.warn("DEACTIVE: [userId] " + userId)
+      if (!userId) next([403, "ACCESS_DENIED"])
+      else {
+        const accountDetail = await User.findByIdAndUpdate(
+          userId,
+          {deactive: true},
+          {
+            returnDocument: "after",
+          }
+        )
+        delete accountDetail._doc.password
+        next([200, "ACCOUNT_DEACTIVATED", accountDetail])
+      }
     } catch (error) {
       next([500, "", error])
     }

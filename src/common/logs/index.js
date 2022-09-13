@@ -30,5 +30,9 @@ module.exports = winston.createLogger({
       level: "warn",
       filename: path.join(__dirname, "../../logs/warnings.log"),
     }),
+    new winston.transports.File({
+      level: "info",
+      filename: path.join(__dirname, "../../logs/info.log"),
+    }),
   ],
 })
