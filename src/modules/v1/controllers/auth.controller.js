@@ -8,15 +8,9 @@ class AuthController {
   // [GET] /auth/
   async auth(req, res, next) {
     try {
-      const [type, accessToken] = [...req.headers.authorization.split(" ")]
-      let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
-      if (type === "Bearer" && jwt_decoded._id) {
-        const userData = await userServices.getUserData(jwt_decoded._id)
-        if (userData.deactive) next([403, "ACCOUNT_DEACTIVATED"])
-        next([200, "AUTHENTICATED_SUCCESSFULL", jwt_decoded])
-      } else {
-        next([401, "TOKEN_INVALID"])
-      }
+      const userData = req.userData
+      delete userData._doc.password
+      if (userData) next([200, "AUTHENTICATED_SUCCESSFULL", userData])
     } catch (error) {
       next([500, "", error])
     }
@@ -38,6 +32,7 @@ class AuthController {
         $or: [{username}, {email}, {phoneNumber}],
       })
       if (existUser) {
+        if (existUser.deactive) next([403, "ACCOUNT_DEACTIVATED"])
         next([400, "EXISTED_ACCOUNT"])
       } else {
         const newUser = new User({
@@ -73,27 +68,24 @@ class AuthController {
       if (!username || !password) {
         next([400, "WRONG_USERNAME_OR_PASSWORD"])
       }
-      const result = await User.authenticate(
-        username,
-        password,
-        (err, user) => {
-          if (err) {
-            next([404, "WRONG_USERNAME_OR_PASSWORD"])
-          }
-          if (user) {
-            delete user._doc.password
-            const accessToken = userServices.generateAccessToken(user._doc)
-            next([
-              200,
-              "LOGIN_SUCCESSFUL",
-              {
-                accessToken,
-                userData: user,
-              },
-            ])
-          }
+      await User.authenticate(username, password, (err, user) => {
+        if (err) {
+          next([404, "WRONG_USERNAME_OR_PASSWORD"])
         }
-      )
+        if (user) {
+          if (user.deactive) next([403, "ACCOUNT_DEACTIVATED"])
+          delete user._doc.password
+          const accessToken = userServices.generateAccessToken(user._doc)
+          next([
+            200,
+            "LOGIN_SUCCESSFUL",
+            {
+              accessToken,
+              userData: user,
+            },
+          ])
+        }
+      })
     } catch (error) {
       next([500, "", error])
     }

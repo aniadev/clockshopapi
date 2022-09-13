@@ -33,8 +33,7 @@ class AccountController {
   // [GET] /account/detail
   async getDataById(req, res, next) {
     try {
-      const userId = req.userId
-      const accountDetail = await User.findById(userId)
+      const accountDetail = req.userData
       delete accountDetail._doc.password
       next([200, "ACCOUNT_DETAIL", accountDetail])
       // res.status(200).json({
@@ -62,6 +61,25 @@ class AccountController {
       if (error.codeName === "DuplicateKey") {
         next([400, "DUPLICATE_VALUE", error.keyValue])
       }
+      next([500, "", error])
+    }
+  }
+  // [POST] /account/info/deactive
+  async deactiveAccount(req, res, next) {
+    try {
+      const userId = req.userId
+      const id = req.query?.userId
+      if (!id || !userId || id !== userId) next([403, "ACCESS_DENIED"])
+      const accountDetail = await User.findByIdAndUpdate(
+        userId,
+        {deactive: true},
+        {
+          returnDocument: "after",
+        }
+      )
+      delete accountDetail._doc.password
+      next([200, "ACCOUNT_DEACTIVATED", accountDetail])
+    } catch (error) {
       next([500, "", error])
     }
   }

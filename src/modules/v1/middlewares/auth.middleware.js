@@ -1,8 +1,8 @@
 var jwt = require("jsonwebtoken")
 require("dotenv").config()
-const {logger} = require("../services")
+const {logger, userServices} = require("../services")
 
-Auth = (req, res, next) => {
+Auth = async (req, res, next) => {
   // console.log(req.headers.authorization);
   try {
     const SECRET_KEY = process.env.ACCESS_TOKEN_SECRET
@@ -16,9 +16,31 @@ Auth = (req, res, next) => {
     let accessToken = Authorization.split(" ")[1]
     let tokenType = Authorization.split(" ")[0]
     let jwt_decoded = jwt.verify(accessToken, SECRET_KEY)
+    if (!jwt_decoded.expiredAt || jwt_decoded.expiredAt < Date.now()) {
+      res.status(403).json({
+        status: "FAIL",
+        message: "TOKEN_EXPIRED",
+      })
+      return
+    }
     if (tokenType === "Bearer" && jwt_decoded._id) {
-      req.userId = jwt_decoded._id
-      // console.log(jwt_decoded.userId);
+      const userData = await userServices.getUserData(jwt_decoded._id)
+      if (userData.deactive) {
+        res.status(403).json({
+          status: "FAIL",
+          message: "ACCOUNT_DEACTIVATED",
+        })
+        return
+      }
+      if (!userData) {
+        res.status(401).json({
+          status: "FAIL",
+          message: "TOKEN_INVALID",
+        })
+        return
+      }
+      req.userId = userData._id
+      req.userData = userData
       next()
     } else {
       res.status(401).json({
