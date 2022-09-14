@@ -196,7 +196,7 @@ class OrderController {
   //  }
   async completeOrderById(req, res, next) {
     try {
-      const userId = req.userId
+      const userId = req.userId.toString()
       console.log(">>> / file: order.controller.js / line 192 / userId", userId)
       const {orderId} = req.body
       if (isNull({orderId})) {
