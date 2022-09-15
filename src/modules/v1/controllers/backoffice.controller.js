@@ -133,6 +133,32 @@ class BoController {
       next([500, "", error])
     }
   }
+  // [POST] /bo/order/cancel
+  /* // Body
+  {
+    "orderId": "abcxxxabc" 
+  }
+  */
+  async cancelOrder(req, res, next) {
+    try {
+      const {orderId} = req.body
+      if (isNull({orderId})) {
+        return next([400, "EMPTY_DATA"])
+      }
+      const orderData = await boServices.getOrderDataById(orderId)
+      if (!orderData) next([404, "NOT_FOUND"])
+      if (orderData.status !== "SUCCESS") {
+        await Order.findByIdAndUpdate(orderId, {status: "ABORTED"})
+        orderData._doc.status = "ABORTED"
+      } else {
+        logger.warn("ORDER_ALREADY_ABORTED: " + orderData._id)
+        next([400, "ORDER_ALREADY_ABORTED"])
+      }
+      next([200, "ORDER_ABORTED", orderData])
+    } catch (error) {
+      next([500, "", error])
+    }
+  }
 }
 
 module.exports = new BoController()

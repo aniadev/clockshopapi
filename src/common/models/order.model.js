@@ -13,7 +13,7 @@ var OrderSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["READY", "PENDING", "SUCCESS", "ABORTED"],
+      enum: ["READY", "PENDING", "APPROVED", "SUCCESS", "ABORTED"],
       default: "READY",
     },
     discount: {

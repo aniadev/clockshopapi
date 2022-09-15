@@ -14,5 +14,6 @@ router.get("/statistic", AdminRole, BoController.handleStatistic)
 router.get("/revenue-stats", AdminRole, BoController.handleRevenueStats)
 router.get("/order/all", AdminRole, BoController.getAllOrder)
 router.post("/order/cod-approve", AdminRole, BoController.approveCodOrder)
+router.post("/order/cancel", AdminRole, BoController.cancelOrder)
 
 module.exports = router
