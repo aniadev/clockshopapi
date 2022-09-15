@@ -147,12 +147,16 @@ class BoController {
       }
       const orderData = await boServices.getOrderDataById(orderId)
       if (!orderData) next([404, "NOT_FOUND"])
-      if (orderData.status !== "SUCCESS") {
+      if (orderData.status === "ABORTED") {
+        next([400, "ORDER_ALREADY_ABORTED"])
+      } else if (
+        orderData.status !== "SUCCESS" &&
+        orderData.status !== "ABORTED"
+      ) {
         await Order.findByIdAndUpdate(orderId, {status: "ABORTED"})
         orderData._doc.status = "ABORTED"
       } else {
-        logger.warn("ORDER_ALREADY_ABORTED: " + orderData._id)
-        next([400, "ORDER_ALREADY_ABORTED"])
+        next([403, "CANNOT_CANCEL_SUCCESS_ORDER"])
       }
       next([200, "ORDER_ABORTED", orderData])
     } catch (error) {
