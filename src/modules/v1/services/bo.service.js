@@ -59,7 +59,12 @@ async function statisticClockByType(type) {
 
 async function getAllOrder() {
   const allOrder = await Order.find({
-    $or: [{status: "PENDING"}, {status: "APPROVED"}, {status: "SUCCESS"}],
+    $or: [
+      {status: "PENDING"},
+      {status: "APPROVED"},
+      {status: "SUCCESS"},
+      {status: "ABORTED"},
+    ],
   })
     .populate("user", ["fullName", "phoneNumber", "email"])
     .populate("paymentMethod", [
@@ -89,7 +94,14 @@ async function getAllOrderByUserId(userId) {
   const allOrder = await Order.find({
     $and: [
       {user: userId},
-      {$or: [{status: "PENDING"}, {status: "APPROVED"}, {status: "SUCCESS"}]},
+      {
+        $or: [
+          {status: "PENDING"},
+          {status: "APPROVED"},
+          {status: "SUCCESS"},
+          {status: "ABORTED"},
+        ],
+      },
     ],
   })
     .populate("user", ["fullName", "phoneNumber", "email"])
